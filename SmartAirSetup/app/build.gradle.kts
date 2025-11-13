@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -34,11 +35,15 @@ android {
 }
 
 dependencies {
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.activity)
-    implementation(libs.constraintlayout)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
+    // --- AndroidX & UI stuff ---
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat.v170)
+    implementation(libs.material.v1120)
+    implementation(libs.constraintlayout.v221)
+
+    // (If your project had other libs from the template, add them back too.)
+
+    // --- Firebase ---
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
 }

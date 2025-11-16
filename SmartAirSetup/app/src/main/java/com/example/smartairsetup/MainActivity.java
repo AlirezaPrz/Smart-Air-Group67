@@ -1,24 +1,33 @@
 package com.example.smartairsetup;
 
-import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
+
+    private Button buttonNewUser;
+    private Button buttonExistingUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+
+        buttonNewUser = findViewById(R.id.buttonNewUser);
+        buttonExistingUser = findViewById(R.id.buttonExistingUser);
+
+        buttonNewUser.setOnClickListener(v -> {
+            // For now, I have it so that it just goes straight to SignUp.
+            // Zack, you can then insert your onboarding stuff here
+            Intent intent = new Intent(MainActivity.this, SignupActivity.class);
+            startActivity(intent);
+        });
+
+        buttonExistingUser.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
         });
     }
 }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/background_colour"
     tools:context=".ParentHomeActivity">
 
     <!-- Header: Family Members -->
@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:text="Add Member"
-
+        android:backgroundTint="@color/button_icon_color"
         app:layout_constraintBottom_toBottomOf="@id/titleFamilyMembers"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/titleFamilyMembers" />

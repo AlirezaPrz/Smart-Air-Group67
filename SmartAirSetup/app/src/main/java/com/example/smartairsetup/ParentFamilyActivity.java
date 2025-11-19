@@ -7,24 +7,40 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 
-public class ParentFamilyActivity extends AppCompatActivity {
-    private ImageButton homeButton;
-
+// 1. Extend from AbstractNavigation instead of AppCompatActivitypublic class ParentHomeActivity extends AbstractNavigation {
+public class ParentFamilyActivity extends AbstractNavigation {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_parent_family);
 
-        homeButton = findViewById(R.id.homeButton);
-
-        homeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(ParentFamilyActivity.this, ParentHomeActivity.class);
-
-                startActivity(intent);
-            }
-        });
+    }
+    @Override
+    protected int getLayoutResourceId() {
+        return R.layout.activity_parent_family;
+    }
+    @Override
+    protected void onHomeClicked() {
+        Intent intent = new Intent(this, ParentHomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
     }
 
+    @Override
+    protected void onFamilyClicked() {
+        //Do nothing as we are on Family Page
+    }
+
+    @Override
+    protected void onProfileClicked() {
+        // TODO: For a Parent, this would go to ParentProfileActivity
+        // Intent intent = new Intent(this, ParentProfileActivity.class);
+        // startActivity(intent);
+    }
+
+    @Override
+    protected void onSettingsClicked() {
+        // TODO: For a Parent, this would go to ParentSettingsActivity
+        // Intent intent = new Intent(this, ParentSettingsActivity.class);
+        // startActivity(intent);
+    }
 }

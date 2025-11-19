@@ -1,41 +1,78 @@
 package com.example.smartairsetup;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
+import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.AppCompatActivity;
 
-//TO DO: This abstract class will be used as a template to navigate
-// between home, family, profile, settings screens
+/**
+ * This abstract class serves as a true template for all Activities with a bottom navigation menu.
+ * It handles view finding and delegates ALL click events to the subclasses, making it role-agnostic.
+ */
+public abstract class AbstractNavigation extends AppCompatActivity implements View.OnClickListener {
 
-public abstract class AbstractNavigation <T extends Activity> extends AppCompatActivity {
-//    protected ImageButton homeButton;
-//    protected ImageButton familyButton;
-//    protected ImageButton profileButton;
-//    protected ImageButton settingsButton;
+    protected ImageButton homeButton, familyButton, profileButton, settingsButton;
+    protected TextView homeText, familyText, profileText, settingsText;
 
-    //Setup all functionality for the activity
+    // --- METHODS TO BE IMPLEMENTED BY SUBCLASSES ---
+
+    @LayoutRes
+    protected abstract int getLayoutResourceId();
+
+    // The following methods force each subclass to define its own navigation logic.
+    protected abstract void onHomeClicked();
+    protected abstract void onFamilyClicked();
+    protected abstract void onProfileClicked();
+    protected abstract void onSettingsClicked();
+
+    // --- ACTIVITY LIFECYCLE ---
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setViews();
-//        setHomeButton();
-//        setFamilyButton();
-//        setProfileButton();
-//        setSettingsButton();
+        setContentView(getLayoutResourceId());
+        setupViews();
+        setupNavigationClickListeners();
     }
 
-    void setViews() {
-//        homeButton = findViewById(R.id.homeButton);
-//        familyButton = findViewById(R.id.familyButton);
-//        profileButton = findViewById(R.id.profileButton);
-//        settingsButton = findViewById(R.id.settingsButton);
+    // --- SETUP METHODS ---
+
+    private void setupViews() {
+        homeButton = findViewById(R.id.homeButton);
+        homeText = findViewById(R.id.homeText);
+        familyButton = findViewById(R.id.familyButton);
+        familyText = findViewById(R.id.familyText);
+        profileButton = findViewById(R.id.profileButton);
+        profileText = findViewById(R.id.profileText);
+        settingsButton = findViewById(R.id.settingsButton);
+        settingsText = findViewById(R.id.settingsText);
     }
 
-    //protected void setHomeButton();
+    private void setupNavigationClickListeners() {
+        homeButton.setOnClickListener(this);
+        familyButton.setOnClickListener(this);
+        profileButton.setOnClickListener(this);
+        settingsButton.setOnClickListener(this);
+    }
 
-    //protected void setFamilyButton();
-    //protected void setProfileButton();
-    //protected void setSettingsButton();
+    /**
+     * This method is called when any of the navigation buttons are clicked.
+     * It now delegates the action to the corresponding abstract method.
+     */
+    @Override
+    public void onClick(View view) {
+        int viewId = view.getId();
+        if (viewId == R.id.homeButton) {
+            onHomeClicked();
+        } else if (viewId == R.id.familyButton) {
+            onFamilyClicked();
+        } else if (viewId == R.id.profileButton) {
+            onProfileClicked();
+        } else if (viewId == R.id.settingsButton) {
+            onSettingsClicked();
+        }
+    }
 }

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#DFF3FF">
+
+    <TextView
+        android:id="@+id/textParentTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Parent Home"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#1B4F72"
+        android:paddingBottom="8dp" />
+
+    <TextView
+        android:id="@+id/textParentSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap a child to manage what their provider can see."
+        android:textSize="14sp"
+        android:textColor="#4F4F4F"
+        android:paddingBottom="16dp" />
+
+    <TextView
+        android:id="@+id/textNoChildren"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="You don't have any children added yet. Use the button below to add one."
+        android:textSize="14sp"
+        android:textColor="#4F4F4F"
+        android:visibility="gone"
+        android:paddingBottom="8dp" />
+
+    <ListView
+        android:id="@+id/listChildren"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:dividerHeight="1dp" />
+
+    <Button
+        android:id="@+id/buttonAddChild"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Child"
+        android:layout_marginTop="12dp" />
+
+</LinearLayout>

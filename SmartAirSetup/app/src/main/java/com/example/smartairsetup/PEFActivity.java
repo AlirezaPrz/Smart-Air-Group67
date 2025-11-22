@@ -10,7 +10,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +58,45 @@ public class PEFActivity extends AppCompatActivity {
         saveButton.setOnClickListener(v -> savePEF());
     }
 
+    @androidx.annotation.Nullable
+    private String computeZone(long dailyPEF, long pb) {
+        if (dailyPEF <= 0 || pb <= 0) return null;
+        double percentage = (double) dailyPEF / (double) pb;
+        if (percentage >= 0.8) return "GREEN";
+        else if (percentage >= 0.5) return "YELLOW";
+        else return "RED";
+    }
+
+    private void logZoneChange(String childUid,
+                               String childName,
+                               String oldZone,
+                               String newZone,
+                               long dailyPEF,
+                               long pb) {
+
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                .format(new Date());
+
+        double percentage = pb > 0 ? (double) dailyPEF / (double) pb : 0.0;
+
+        Map<String, Object> zoneData = new HashMap<>();
+        zoneData.put("childId", childUid);
+        zoneData.put("childName", childName);
+        zoneData.put("date", date);
+        zoneData.put("oldZone", oldZone);
+        zoneData.put("newZone", newZone);
+        zoneData.put("dailyPEF", dailyPEF);
+        zoneData.put("pb", pb);
+        zoneData.put("percentage", percentage);
+        zoneData.put("timestamp", System.currentTimeMillis());
+
+        // Parent-level zone history collection
+        db.collection("users")
+                .document(parentID)
+                .collection("zoneHistory")
+                .add(zoneData);
+    }
+
     public void savePEF() {
         Object tag = chooseChildButton.getTag();
 
@@ -63,6 +106,7 @@ public class PEFActivity extends AppCompatActivity {
         }
 
         String childUid = tag.toString();
+        String childName = chooseChildButton.getText().toString();
 
         int dailyPEF = pefParser.parsePEF(dailyPEFInput);
         int prePEF = pefParser.parsePEF(preMedicationPB);
@@ -76,10 +120,10 @@ public class PEFActivity extends AppCompatActivity {
         StorageChild entry = new StorageChild(dailyPEF, prePEF, postPEF);
         pefStorage.save(childUid, entry);
 
-        saveChildPEFToFirebase(childUid, entry);
+        saveChildPEFToFirebase(childUid, childName, entry);
     }
 
-    private void saveChildPEFToFirebase(String childUid, StorageChild entry) {
+    private void saveChildPEFToFirebase(String childUid, String childName, StorageChild entry) {
 
         db.collection("users")
                 .document(parentID)
@@ -94,9 +138,16 @@ public class PEFActivity extends AppCompatActivity {
                     long oldPre = latestDoc.getLong("prePEF") != null ? latestDoc.getLong("prePEF") : 0;
                     long oldPost = latestDoc.getLong("postPEF") != null ? latestDoc.getLong("postPEF") : 0;
 
+                    Long pbValue = latestDoc.getLong("pb");
+                    long pb = pbValue != null ? pbValue : 0;
+
+                    String oldZone = computeZone(oldDaily, pb);
+
                     long finalDaily = Math.max(oldDaily, entry.getDailyPEF());
                     long finalPre = Math.max(oldPre, entry.getPrePEF());
                     long finalPost = Math.max(oldPost, entry.getPostPEF());
+
+                    String newZone = computeZone(finalDaily, pb);
 
                     Map<String, Object> data = new HashMap<>();
                     data.put("dailyPEF", finalDaily);
@@ -109,9 +160,16 @@ public class PEFActivity extends AppCompatActivity {
                             .document(childUid)
                             .collection("PEF")
                             .document("latest")
-                            .set(data)
-                            .addOnSuccessListener(aVoid ->
-                                    Toast.makeText(this, "PEF saved successfully", Toast.LENGTH_SHORT).show())
+                            // IMPORTANT: merge so pb/timestamp are preserved
+                            .set(data, SetOptions.merge())
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "PEF saved successfully", Toast.LENGTH_SHORT).show();
+
+                                // Only log when there *is* a change in zone
+                                if (oldZone != null && newZone != null && !oldZone.equals(newZone)) {
+                                    logZoneChange(childUid, childName, oldZone, newZone, finalDaily, pb);
+                                }
+                            })
                             .addOnFailureListener(e ->
                                     Log.e("PEFActivity", "Error saving PEF", e));
                 });

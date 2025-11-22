@@ -143,19 +143,16 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void goToRoleHome(String role) {
-        // TODO: replace with real Activities when your team adds them
-        Intent intent = new Intent(this, MainActivity.class);
-        /*
-        if ("child".equals(role)) {
-            intent = new Intent(this, ChildHomeActivity.class);
-        } else if ("parent".equals(role)) {
+        Intent intent;
+
+        if ("parent".equals(role)) {
+            // Parents go to the screen with the child list + share toggles
             intent = new Intent(this, ParentHomeActivity.class);
-        } else if ("provider".equals(role)) {
-            intent = new Intent(this, ProviderHomeActivity.class);
         } else {
+            // For now, everyone else goes back to the main screen
             intent = new Intent(this, MainActivity.class);
         }
-        */
+
         startActivity(intent);
         finish();
     }

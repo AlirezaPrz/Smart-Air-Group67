@@ -35,6 +35,12 @@
             android:name=".OnboardingActivity4"
             android:exported="false" /> <!-- Main launcher screen -->
         <activity
+            android:name=".ShareWithProviderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ParentHomeActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

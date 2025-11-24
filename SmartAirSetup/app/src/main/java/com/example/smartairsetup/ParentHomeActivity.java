@@ -15,8 +15,8 @@ public class ParentHomeActivity extends AbstractNavigation {
         View.OnClickListener calculateListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Intent intent = new Intent(ParentHomeActivity.this, CalculatePefActivity.class);
-                //startActivity(intent);
+                Intent intent = new Intent(ParentHomeActivity.this, ParentBadgeSettingsActivity.class);
+                startActivity(intent);
 
             }
         };

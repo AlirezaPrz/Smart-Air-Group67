@@ -6,16 +6,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 
-// 1. Extend from AbstractNavigation instead of AppCompat Activity public class ParentHomeActivity extends AbstractNavigation {
 public class ChildHomeActivity extends AbstractNavigation {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Button buttonBadges = findViewById(R.id.buttonBadges);
+        buttonBadges.setOnClickListener(v -> {
+            Intent intent = new Intent(ChildHomeActivity.this, ChildBadgesActivity.class);
+            startActivity(intent);
+        });
     }
+
 
     private void setupShortcutClicks() {
         // go to Calculate PEF

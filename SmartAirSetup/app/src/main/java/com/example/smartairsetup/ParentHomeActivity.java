@@ -1,27 +1,29 @@
 package com.example.smartairsetup;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AlertDialog;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParentHomeActivity extends AppCompatActivity {
+public class ParentHomeActivity extends AbstractNavigation {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -33,6 +35,12 @@ public class ParentHomeActivity extends AppCompatActivity {
     private final List<String> childNames = new ArrayList<>();
     private final List<String> childIds = new ArrayList<>();
     private ArrayAdapter<String> childrenAdapter;
+
+    // Child overview UI
+    private Spinner spinnerChildSelector;
+    private TextView textWeeklyRescue;
+    private ArrayAdapter<String> childSelectorAdapter;
+    private String parentUid;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,12 +59,13 @@ public class ParentHomeActivity extends AppCompatActivity {
         Button buttonSetPB = findViewById(R.id.buttonSetPB);
         buttonSetPB.setOnClickListener(v -> {
             if (childIds.isEmpty()) {
-                Toast.makeText(ParentHomeActivity.this,
+                Toast.makeText(
+                        ParentHomeActivity.this,
                         "Please add a child first.",
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_SHORT
+                ).show();
                 return;
             }
-            // PBActivity has its own child picker, so just open it
             Intent intent = new Intent(ParentHomeActivity.this, PBActivity.class);
             startActivity(intent);
         });
@@ -64,30 +73,37 @@ public class ParentHomeActivity extends AppCompatActivity {
         Button buttonEnterPEF = findViewById(R.id.buttonEnterPEF);
         buttonEnterPEF.setOnClickListener(v -> {
             if (childIds.isEmpty()) {
-                Toast.makeText(ParentHomeActivity.this,
+                Toast.makeText(
+                        ParentHomeActivity.this,
                         "Please add a child first.",
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_SHORT
+                ).show();
                 return;
             }
-            // PEFActivity also shows its own child picker
             Intent intent = new Intent(ParentHomeActivity.this, PEFActivity.class);
+            startActivity(intent);
+        });
+
+        Button buttonAddBadges = findViewById(R.id.buttonAddBadges);
+        buttonAddBadges.setOnClickListener(v -> {
+            Intent intent = new Intent(ParentHomeActivity.this, ParentBadgeSettingsActivity.class);
             startActivity(intent);
         });
 
         Button buttonDailyCheckIn = findViewById(R.id.buttonDailyCheckIn);
         buttonDailyCheckIn.setOnClickListener(v -> {
             if (childIds.isEmpty()) {
-                Toast.makeText(ParentHomeActivity.this,
+                Toast.makeText(
+                        ParentHomeActivity.this,
                         "Please add a child first.",
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_SHORT
+                ).show();
                 return;
             }
 
             if (childIds.size() == 1) {
-                // Only one child – go straight to DailyCheckIn
                 launchDailyCheckIn(childIds.get(0), childNames.get(0));
             } else {
-                // Multiple children – show a picker dialog
                 String[] namesArray = childNames.toArray(new String[0]);
 
                 new AlertDialog.Builder(ParentHomeActivity.this)
@@ -114,15 +130,15 @@ public class ParentHomeActivity extends AppCompatActivity {
         );
         listChildren.setAdapter(childrenAdapter);
 
-        // Go to AddChildActivity when the button is pressed
         buttonAddChild.setOnClickListener(v -> {
             Intent intent = new Intent(ParentHomeActivity.this, AddChildActivity.class);
             startActivity(intent);
         });
 
-        // When a child is tapped, open your ShareWithProviderActivity
         listChildren.setOnItemClickListener((parent, view, position, id) -> {
-            if (position < 0 || position >= childIds.size()) return;
+            if (position < 0 || position >= childIds.size()) {
+                return;
+            }
 
             String childId = childIds.get(position);
             String childName = childNames.get(position);
@@ -133,13 +149,48 @@ public class ParentHomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Child overview card (spinner + weekly text)
+        spinnerChildSelector = findViewById(R.id.spinnerChildSelector);
+        textWeeklyRescue = findViewById(R.id.textWeeklyRescue);
+
+        childSelectorAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                childNames
+        );
+        childSelectorAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+        spinnerChildSelector.setAdapter(childSelectorAdapter);
+
+        spinnerChildSelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(
+                    AdapterView<?> parent,
+                    View view,
+                    int position,
+                    long id
+            ) {
+                if (position >= 0 && position < childIds.size()) {
+                    String childId = childIds.get(position);
+                    loadWeeklyRescueForChild(childId);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                textWeeklyRescue.setText(
+                        "Select a child to see this week's rescue medication count."
+                );
+            }
+        });
+
         loadChildren();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh the list after coming back from AddChildActivity
         loadChildren();
     }
 
@@ -151,9 +202,11 @@ public class ParentHomeActivity extends AppCompatActivity {
             return;
         }
 
-        String parentUid = mAuth.getCurrentUser().getUid();
+        String parentUidLocal = mAuth.getCurrentUser().getUid();
+        this.parentUid = parentUidLocal;
+
         CollectionReference childrenRef = db.collection("users")
-                .document(parentUid)
+                .document(parentUidLocal)
                 .collection("children");
 
         childrenRef.get()
@@ -171,19 +224,61 @@ public class ParentHomeActivity extends AppCompatActivity {
                     }
 
                     childrenAdapter.notifyDataSetChanged();
+                    childSelectorAdapter.notifyDataSetChanged();
 
                     if (childIds.isEmpty()) {
                         textNoChildren.setVisibility(View.VISIBLE);
                         listChildren.setVisibility(View.GONE);
+
+                        spinnerChildSelector.setEnabled(false);
+                        textWeeklyRescue.setText("No children found for this parent.");
                     } else {
                         textNoChildren.setVisibility(View.GONE);
                         listChildren.setVisibility(View.VISIBLE);
+
+                        spinnerChildSelector.setEnabled(true);
+                        spinnerChildSelector.setSelection(0);
+
+                        String firstChildId = childIds.get(0);
+                        loadWeeklyRescueForChild(firstChildId);
                     }
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this,
                                 "Failed to load children: " + e.getMessage(),
                                 Toast.LENGTH_LONG).show()
+                );
+    }
+
+    private void loadWeeklyRescueForChild(String childId) {
+        if (parentUid == null || childId == null) {
+            textWeeklyRescue.setText("Could not load weekly rescue data.");
+            return;
+        }
+
+        db.collection("users")
+                .document(parentUid)
+                .collection("children")
+                .document(childId)
+                .get()
+                .addOnSuccessListener((DocumentSnapshot doc) -> {
+                    if (!doc.exists()) {
+                        textWeeklyRescue.setText("No weekly rescue data for this child.");
+                        return;
+                    }
+
+                    Long countLong = doc.getLong("weekly_rescue_medication_count");
+                    int count = 0;
+                    if (countLong != null) {
+                        count = countLong.intValue();
+                    }
+
+                    textWeeklyRescue.setText(
+                            "Rescue medication count this week: " + count
+                    );
+                })
+                .addOnFailureListener(e ->
+                        textWeeklyRescue.setText("Could not load weekly rescue data.")
                 );
     }
 
@@ -194,4 +289,32 @@ public class ParentHomeActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    // --- Navigation integration from your code ---
+
+    @Override
+    protected int getLayoutResourceId() {
+        return R.layout.activity_parent_home;
+    }
+
+    @Override
+    protected void onHomeClicked() {
+        // Already on home
+    }
+
+    @Override
+    protected void onFamilyClicked() {
+        Intent intent = new Intent(ParentHomeActivity.this, AddChildActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onProfileClicked() {
+        // TODO: For a Parent, this would go to ParentProfileActivity
+    }
+
+    @Override
+    protected void onSettingsClicked() {
+        // TODO: For a Parent, this would go to ParentSettingsActivity
+    }
 }

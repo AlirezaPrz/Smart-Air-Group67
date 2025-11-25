@@ -46,9 +46,28 @@
         <activity
             android:name=".ShareWithProviderActivity"
             android:exported="false" />
+
+        <!-- Parent -->
         <activity
             android:name=".ParentHomeActivity"
             android:exported="false" />
+        <activity
+            android:name=".ParentFamilyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ParentBadgeSettingsActivity"
+            android:exported="false" />
+        <!-- Child -->
+        <activity
+            android:name=".ChildHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChildFamilyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChildBadgesActivity"
+            android:exported="false" />
+        <!---->
         <activity
             android:name=".HistoryActivity"
             android:exported="false" />

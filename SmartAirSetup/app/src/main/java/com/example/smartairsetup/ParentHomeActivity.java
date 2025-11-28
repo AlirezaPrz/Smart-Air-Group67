@@ -136,17 +136,34 @@ public class ParentHomeActivity extends AbstractNavigation {
         });
 
         listChildren.setOnItemClickListener((parent, view, position, id) -> {
-            if (position < 0 || position >= childIds.size()) {
-                return;
-            }
+            if (position < 0 || position >= childIds.size()) return;
 
             String childId = childIds.get(position);
             String childName = childNames.get(position);
 
-            Intent intent = new Intent(ParentHomeActivity.this, ShareWithProviderActivity.class);
-            intent.putExtra(ShareWithProviderActivity.EXTRA_CHILD_ID, childId);
-            intent.putExtra(ShareWithProviderActivity.EXTRA_CHILD_NAME, childName);
-            startActivity(intent);
+            String[] options = new String[] {
+                    "Sharing settings",
+                    "Invite provider (7-day link)"
+            };
+
+            new AlertDialog.Builder(ParentHomeActivity.this)
+                    .setTitle(childName)
+                    .setItems(options, (dialog, which) -> {
+                        if (which == 0) {
+                            // Sharing toggles
+                            Intent intent = new Intent(ParentHomeActivity.this, ShareWithProviderActivity.class);
+                            intent.putExtra(ShareWithProviderActivity.EXTRA_CHILD_ID, childId);
+                            intent.putExtra(ShareWithProviderActivity.EXTRA_CHILD_NAME, childName);
+                            startActivity(intent);
+                        } else if (which == 1) {
+                            // Invite provider link screen
+                            Intent intent = new Intent(ParentHomeActivity.this, InviteProviderActivity.class);
+                            intent.putExtra(InviteProviderActivity.EXTRA_CHILD_ID, childId);
+                            intent.putExtra(InviteProviderActivity.EXTRA_CHILD_NAME, childName);
+                            startActivity(intent);
+                        }
+                    })
+                    .show();
         });
 
         // Child overview card (spinner + weekly text)

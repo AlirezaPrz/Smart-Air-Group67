@@ -116,9 +116,9 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/shortcutsTitle">
 
-                <!-- Shortcut Card: Calculate PEF -->
+                <!-- Shortcut Card: Inhaler Technique -->
                 <FrameLayout
-                    android:id="@+id/cardCalculatePef"
+                    android:id="@+id/cardInhalerTechnique"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
@@ -134,25 +134,31 @@
                         android:orientation="vertical">
 
                         <ImageButton
-                            android:id="@+id/buttonCalculatePef"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:id="@+id/buttonInhalerTechnique"
+                            android:layout_width="match_parent"
+                            android:layout_height="73dp"
                             android:background="@android:color/transparent"
-                            android:contentDescription="Calculate PEF"
-                            android:src="@drawable/family"
+                            android:contentDescription="Inhaler Technique"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/shortcut_technique_training"
                             app:tint="#00BCD4" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="Calculate PEF" />
+                            android:text="Inhaler Technique"
+                            android:textColor="@color/black"
+                            android:textSize="18dp"
+                            android:textStyle="bold"
+                            android:layout_gravity="center" />
+
                     </LinearLayout>
                 </FrameLayout>
 
-                <!-- Shortcut Card: Set Personal Best -->
+                <!-- Shortcut Card: Take Medication -->
                 <FrameLayout
-                    android:id="@+id/cardSetPersonalBest"
+                    android:id="@+id/cardTakeMedication"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
@@ -168,19 +174,24 @@
                         android:orientation="vertical">
 
                         <ImageButton
-                            android:id="@+id/buttonSetPersonalBest"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:id="@+id/buttonTakeMedication"
+                            android:layout_width="match_parent"
+                            android:layout_height="74dp"
                             android:background="@android:color/transparent"
-                            android:contentDescription="Set Personal Best"
-                            android:src="@drawable/family"
+                            android:contentDescription="Take Medication"
+                            android:src="@drawable/shortcut_take_medication"
+                            android:scaleType="fitCenter"
                             app:tint="#00BCD4" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="Set Personal Best" />
+                            android:text="Take Medication"
+                            android:textColor="@color/black"
+                            android:textSize="18dp"
+                            android:textStyle="bold"
+                            android:layout_gravity="center" />
                     </LinearLayout>
 
                 </FrameLayout>

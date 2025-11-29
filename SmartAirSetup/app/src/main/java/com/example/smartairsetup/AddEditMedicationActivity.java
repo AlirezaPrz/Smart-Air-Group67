@@ -222,6 +222,9 @@ public class AddEditMedicationActivity extends AppCompatActivity {
 
                 if (isEditMode) {
 
+                    medData.put("med_UUID", passedMedID);      // keep same UUID
+                    medData.put("createdAt", editingMedication.getCreatedAt()); // keep same timestamp
+
                     if (!selectedChildId.equals(passedChildUID)) {
                         //Delete old medication
                         db.collection("users")

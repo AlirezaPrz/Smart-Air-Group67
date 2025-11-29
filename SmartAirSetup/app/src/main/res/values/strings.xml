@@ -81,7 +81,7 @@
     </string-array>
 
     <!--Home Screen -->
-        <!-- Navigation Buttons -->
+    <!-- Navigation Buttons -->
     <!-- Navigation Menu Texts -->
     <string name="nav_home">Home</string>
     <string name="nav_family">Family</string>

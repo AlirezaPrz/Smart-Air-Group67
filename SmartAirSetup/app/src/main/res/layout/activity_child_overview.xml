@@ -201,7 +201,7 @@
 
     <!-- Profile -->
     <ImageButton
-        android:id="@+id/profileButton"
+        android:id="@+id/emergencyButton"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="?attr/selectableItemBackgroundBorderless"
@@ -216,7 +216,7 @@
         app:srcCompat="@drawable/menu_profile_button_logo" />
 
     <TextView
-        android:id="@+id/profileText"
+        android:id="@+id/emergencyText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:elevation="9dp"

@@ -6,6 +6,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.LayoutRes;
 
 import androidx.annotation.Nullable;
 
@@ -228,12 +229,14 @@ public class ChildOverviewActivity extends AbstractNavigation {
     // ----- Navigation hooks -----
 
     @Override
+    @androidx.annotation.LayoutRes
     protected int getLayoutResourceId() {
         return R.layout.activity_child_overview;
     }
 
     @Override
     protected void onHomeClicked() {
+        // Parent home (the shortcuts and child summary page)
         Intent intent = new Intent(this, ParentHomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
@@ -241,17 +244,24 @@ public class ChildOverviewActivity extends AbstractNavigation {
 
     @Override
     protected void onFamilyClicked() {
-        Intent intent = new Intent(this, AddChildActivity.class);
+        // Where “family/children” nav goes in the rest of the app.
+        // If your app uses ChildHomeActivity or AddChildActivity, use that one:
+        Intent intent = new Intent(this, ChildHomeActivity.class);
+        // or: new Intent(this, AddChildActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
 
     @Override
-    protected void onProfileClicked() {
-        // TODO: Parent profile if needed
+    protected void onSettingsClicked() {
+        // TODO: Parent settings screen if you create one later
     }
 
     @Override
-    protected void onSettingsClicked() {
-        // TODO: Parent settings if needed
+    protected void onEmergencyClicked() {
+        // Emergency plan / PDF
+        Intent intent = new Intent(this, PDFStoreActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
     }
 }

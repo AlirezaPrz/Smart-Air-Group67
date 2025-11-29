@@ -27,19 +27,15 @@ public class ParentHomeActivity extends AbstractNavigation {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-
-    private ListView listChildren;
-    private TextView textNoChildren;
     private Button buttonAddChild;
-
     private final List<String> childNames = new ArrayList<>();
     private final List<String> childIds = new ArrayList<>();
-    private ArrayAdapter<String> childrenAdapter;
 
     // Child overview UI
     private Spinner spinnerChildSelector;
     private TextView textWeeklyRescue;
     private ArrayAdapter<String> childSelectorAdapter;
+    private ArrayAdapter<String> childrenAdapter;
     private String parentUid;
 
     @Override
@@ -53,6 +49,12 @@ public class ParentHomeActivity extends AbstractNavigation {
         Button buttonViewHistory = findViewById(R.id.buttonViewHistory);
         buttonViewHistory.setOnClickListener(v -> {
             Intent intent = new Intent(ParentHomeActivity.this, HistoryActivity.class);
+            startActivity(intent);
+        });
+
+        Button buttonChildOverview = findViewById(R.id.buttonChildOverview);
+        buttonChildOverview.setOnClickListener(v -> {
+            Intent intent = new Intent(ParentHomeActivity.this, ChildOverviewActivity.class);
             startActivity(intent);
         });
 
@@ -119,51 +121,10 @@ public class ParentHomeActivity extends AbstractNavigation {
             }
         });
 
-        listChildren = findViewById(R.id.listChildren);
-        textNoChildren = findViewById(R.id.textNoChildren);
         buttonAddChild = findViewById(R.id.buttonAddChild);
-
-        childrenAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_1,
-                childNames
-        );
-        listChildren.setAdapter(childrenAdapter);
-
         buttonAddChild.setOnClickListener(v -> {
             Intent intent = new Intent(ParentHomeActivity.this, AddChildActivity.class);
             startActivity(intent);
-        });
-
-        listChildren.setOnItemClickListener((parent, view, position, id) -> {
-            if (position < 0 || position >= childIds.size()) return;
-
-            String childId = childIds.get(position);
-            String childName = childNames.get(position);
-
-            String[] options = new String[] {
-                    "Sharing settings",
-                    "Invite provider (7-day link)"
-            };
-
-            new AlertDialog.Builder(ParentHomeActivity.this)
-                    .setTitle(childName)
-                    .setItems(options, (dialog, which) -> {
-                        if (which == 0) {
-                            // Sharing toggles
-                            Intent intent = new Intent(ParentHomeActivity.this, ShareWithProviderActivity.class);
-                            intent.putExtra(ShareWithProviderActivity.EXTRA_CHILD_ID, childId);
-                            intent.putExtra(ShareWithProviderActivity.EXTRA_CHILD_NAME, childName);
-                            startActivity(intent);
-                        } else if (which == 1) {
-                            // Invite provider link screen
-                            Intent intent = new Intent(ParentHomeActivity.this, InviteProviderActivity.class);
-                            intent.putExtra(InviteProviderActivity.EXTRA_CHILD_ID, childId);
-                            intent.putExtra(InviteProviderActivity.EXTRA_CHILD_NAME, childName);
-                            startActivity(intent);
-                        }
-                    })
-                    .show();
         });
 
         // Child overview card (spinner + weekly text)
@@ -244,15 +205,10 @@ public class ParentHomeActivity extends AbstractNavigation {
                     childSelectorAdapter.notifyDataSetChanged();
 
                     if (childIds.isEmpty()) {
-                        textNoChildren.setVisibility(View.VISIBLE);
-                        listChildren.setVisibility(View.GONE);
-
+                        // No list anymore; just disable spinner and show message.
                         spinnerChildSelector.setEnabled(false);
                         textWeeklyRescue.setText("No children found for this parent.");
                     } else {
-                        textNoChildren.setVisibility(View.GONE);
-                        listChildren.setVisibility(View.VISIBLE);
-
                         spinnerChildSelector.setEnabled(true);
                         spinnerChildSelector.setSelection(0);
 

@@ -98,33 +98,6 @@
             android:padding="24dp"
             android:background="@android:color/transparent">
 
-            <TextView
-                android:id="@+id/textParentSubtitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Tap a child to manage what their provider can see."
-                android:textSize="14sp"
-                android:textColor="#4F4F4F"
-                android:paddingBottom="16dp" />
-
-            <TextView
-                android:id="@+id/textNoChildren"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="You don't have any children added yet. Use the button below to add one."
-                android:textSize="14sp"
-                android:textColor="#4F4F4F"
-                android:visibility="gone"
-                android:paddingBottom="8dp" />
-
-            <!-- Child list -->
-            <ListView
-                android:id="@+id/listChildren"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:dividerHeight="1dp" />
-
             <!-- Shortcuts title -->
             <TextView
                 android:id="@+id/shortcutsTitle"
@@ -150,6 +123,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="View History"
+                android:backgroundTint="@color/button_icon_color"
+                android:layout_marginTop="12dp" />
+
+            <Button
+                android:id="@+id/buttonChildOverview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Child Overview"
                 android:backgroundTint="@color/button_icon_color"
                 android:layout_marginTop="12dp" />
 

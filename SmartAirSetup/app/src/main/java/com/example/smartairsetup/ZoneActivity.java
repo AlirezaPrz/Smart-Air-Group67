@@ -1,16 +1,19 @@
 package com.example.smartairsetup;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Calendar;
 
 public class ZoneActivity extends AppCompatActivity {
 
@@ -18,6 +21,10 @@ public class ZoneActivity extends AppCompatActivity {
     public TextView zoneLabel;
     private FirebaseFirestore db;
     private String parentID;
+
+    // NEW: track current state
+    private String selectedChildUid = null;
+    private String currentZone = null; // "GREEN"/"YELLOW"/"RED"
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,53 +36,140 @@ public class ZoneActivity extends AppCompatActivity {
         GradientDrawable background = (GradientDrawable) zoneLabel.getBackground();
 
         db = FirebaseFirestore.getInstance();
-        parentID =  FirebaseAuth.getInstance().getCurrentUser().getUid();
+        parentID = "VfB95gwXXyWFAqdajTHJBgyeYfB3"; // hardcoded parent for testing
 
         ProcessChildren provider = new FireBaseProcessChild();
         ChildDiaglog childDiaglog = new ChildDiaglog(this, provider);
 
-        // If a child is already selected, update color
+        chooseChildButton.setOnClickListener(v -> {
+            childDiaglog.showSelectionDialog(chooseChildButton);
+        });
+
+        // NEW: click zone label to open decision card for current zone
+        zoneLabel.setOnClickListener(v -> {
+            if (selectedChildUid == null) {
+                Toast.makeText(this, "Select a child first.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (currentZone == null) {
+                Toast.makeText(this, "Zone not available yet.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            openDecisionCard(false, parentID, selectedChildUid, currentZone);
+        });
+
+        // If a child is already selected, update immediately
         Object tag = chooseChildButton.getTag();
         if (tag != null) {
-            updateZoneColor(tag.toString(), background);
+            selectedChildUid = tag.toString();
+            updateZoneColor(selectedChildUid, background);
         }
-
-        chooseChildButton.setOnClickListener(v -> childDiaglog.showSelectionDialog(chooseChildButton));
     }
 
-    // Called when a child is selected or already set
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Object tag = chooseChildButton.getTag();
+        if (tag != null) {
+            String newUid = tag.toString();
+            if (!newUid.equals(selectedChildUid)) {
+                selectedChildUid = newUid;
+                GradientDrawable background = (GradientDrawable) zoneLabel.getBackground();
+                updateZoneColor(selectedChildUid, background);
+            }
+        }
+    }
+
     public void updateZoneColor(String childUid, GradientDrawable background) {
+        selectedChildUid = childUid;
+
         db.collection("users")
                 .document(parentID)
                 .collection("children")
                 .document(childUid)
+                .collection("PEF")
+                .document("latest")
                 .get()
                 .addOnSuccessListener(latestDoc -> {
 
                     if (!latestDoc.exists()) {
-                        Log.d("ZONE", "No latest doc -> setting GREY");
+                        currentZone = null;
+                        background.setColor(Color.parseColor("#808080")); // grey
+                        return;
+                    }
+
+                    // ⬇️ NEW: Check timestamp is today
+                    Long ts = latestDoc.getLong("timestamp"); // must be millis
+                    if (ts == null) {
+                        currentZone = null;
                         background.setColor(Color.parseColor("#808080"));
                         return;
                     }
 
-                    Long dailyPEF = latestDoc.getLong("dailyPEF");
-                    Long pb = latestDoc.getLong("pb");
+                    Calendar recordCal = Calendar.getInstance();
+                    recordCal.setTimeInMillis(ts);
 
-                    if (dailyPEF == null || pb == null || dailyPEF <= 0 || pb <= 0) {
+                    Calendar todayCal = Calendar.getInstance();
+
+                    boolean sameDay =
+                            recordCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR) &&
+                                    recordCal.get(Calendar.DAY_OF_YEAR) == todayCal.get(Calendar.DAY_OF_YEAR);
+
+                    if (!sameDay) {
+                        // Record is NOT from today → force grey
+                        currentZone = null;
+                        background.setColor(Color.parseColor("#808080"));
+                        return;
+                    }
+                    // ⬆️ END timestamp check
+
+                    String zone = latestDoc.getString("zone");
+                    if (zone == null) {
+                        currentZone = null;
                         background.setColor(Color.parseColor("#808080"));
                         return;
                     }
 
-                    double percentage = (double) dailyPEF / pb;
+                    currentZone = zone.toUpperCase();
 
-                    if (percentage >= 0.8) {
-
-                        background.setColor(Color.parseColor("#4CAF50"));
-                    } else if (percentage >= 0.5) {
-                        background.setColor(Color.parseColor("#FFC107"));
-                    } else {
-                        background.setColor(Color.parseColor("#F44336"));
+                    switch (currentZone) {
+                        case "GREEN":
+                            background.setColor(Color.parseColor("#4CAF50"));
+                            break;
+                        case "YELLOW":
+                            background.setColor(Color.parseColor("#FFC107"));
+                            break;
+                        case "RED":
+                            background.setColor(Color.parseColor("#F44336"));
+                            break;
+                        default:
+                            currentZone = null;
+                            background.setColor(Color.parseColor("#808080"));
+                            break;
                     }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ZoneActivity", "Error fetching latest zone", e);
+                    currentZone = null;
+                    background.setColor(Color.parseColor("#808080"));
                 });
+    }
+
+    private void openDecisionCard(boolean isChild, String parentId, String childUid, String zone) {
+        Class<?> target;
+        switch (zone) {
+            case "GREEN": target = GreenCardActivity.class; break;
+            case "YELLOW": target = YellowCardActivity.class; break;
+            case "RED": target = RedCardActivity.class; break;
+            default:
+                Toast.makeText(this, "Unknown zone.", Toast.LENGTH_SHORT).show();
+                return;
+        }
+
+        Intent i = new Intent(this, target);
+        i.putExtra(YellowCardActivity.EXTRA_IS_CHILD, isChild);
+        i.putExtra(YellowCardActivity.EXTRA_CHILD_UID, childUid);
+        i.putExtra("extra_parent_id", parentId);
+        startActivity(i);
     }
 }

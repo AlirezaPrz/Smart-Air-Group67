@@ -24,9 +24,9 @@
             android:exported="false" />
         <activity
             android:name=".MedicationInventoryActivity"
-            android:exported="false" />
+            android:exported="false"/>
         <activity
-            android:name=".AddMedicationActivityV2"
+            android:name=".AddEditMedicationActivity"
             android:exported="false" />
         <activity
             android:name=".DailyCheckIn"

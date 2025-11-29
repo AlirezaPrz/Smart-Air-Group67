@@ -52,6 +52,11 @@ public class PDFGenerator {
                 String childName = childDoc.getString("name");
                 String childDOB = childDoc.getString("dateOfBirth");
 
+                // Sharing flags
+                boolean sharePEF = Boolean.TRUE.equals(childDoc.getBoolean("sharePEF"));
+                boolean shareTriageIncidents = Boolean.TRUE.equals(childDoc.getBoolean("shareTriageIncidents"));
+                boolean shareSummaryCharts = Boolean.TRUE.equals(childDoc.getBoolean("shareSummaryCharts"));
+
                 // Parent info
                 DocumentSnapshot parentDoc = Tasks.await(
                         db.collection("users")
@@ -143,7 +148,10 @@ public class PDFGenerator {
                         redCount,
                         totalCount,
                         startTimestamp,
-                        endTimestamp
+                        endTimestamp,
+                        sharePEF,
+                        shareTriageIncidents,
+                        shareSummaryCharts
                 );
 
             } catch (Exception e) {
@@ -159,8 +167,11 @@ public class PDFGenerator {
                            String parentEmail,
                            String zoneTable, String triageEvents,
                            int greenCount, int yellowCount, int redCount, int totalCount,
-                           long startTimestamp, long endTimestamp)
-            throws IOException, DocumentException {
+                           long startTimestamp, long endTimestamp, boolean sharePEF,
+                           boolean shareTriageIncidents,
+                           boolean shareSummaryCharts)
+
+    throws IOException, DocumentException {
 
         Document document = new Document();
         OutputStream output;
@@ -220,52 +231,64 @@ public class PDFGenerator {
 
         // Zone Distribution
         document.add(new Paragraph("3. Zone Distribution (PEF)", font));
-        document.add(new Paragraph(zoneTable));
+        if (sharePEF) {
+            document.add(new Paragraph(zoneTable));
+        }
         document.add(new Paragraph("\n"));
 
         // Triage events
         document.add(new Paragraph("4. Noticeable Triage Events", font));
-        document.add(new Paragraph(triageEvents.isEmpty() ? "No incidents recorded" : triageEvents));
+        if (shareTriageIncidents) {
+            if (triageEvents == null || triageEvents.isEmpty()) {
+                document.add(new Paragraph("No incidents recorded"));
+            } else {
+                document.add(new Paragraph(triageEvents));
+            }
+        }
         document.add(new Paragraph("\n"));
 
         // Pie chart
         document.add(new Paragraph("5. Zone Distribution Pie Chart", font));
+        if (shareSummaryCharts) {
 
-        PdfContentByte canvas = writer.getDirectContent();
-        float centerX = 300;
-        float centerY = writer.getVerticalPosition(true) - 100;
-        float radius = 80;
+            PdfContentByte canvas = writer.getDirectContent();
+            float centerX = 300;
+            float centerY = writer.getVerticalPosition(true) - 100;
+            float radius = 80;
 
-        BaseColor darkGreen = new BaseColor(0, 100, 0);
-        BaseColor darkYellow = new BaseColor(204, 204, 0);
-        BaseColor darkRed = new BaseColor(139, 0, 0);
-        BaseColor darkGray = new BaseColor(80, 80, 80);
+            BaseColor darkGreen = new BaseColor(0, 100, 0);
+            BaseColor darkYellow = new BaseColor(204, 204, 0);
+            BaseColor darkRed = new BaseColor(139, 0, 0);
+            BaseColor darkGray = new BaseColor(80, 80, 80);
 
-        int totalDays = (int) ((endTimestamp - startTimestamp) / (1000L * 60 * 60 * 24)) + 1;
-        float greenFraction = greenCount / (float) totalDays;
-        float yellowFraction = yellowCount / (float) totalDays;
-        float redFraction = redCount / (float) totalDays;
+            int totalDays = (int) ((endTimestamp - startTimestamp) / (1000L * 60 * 60 * 24)) + 1;
+            float greenFraction = greenCount / (float) totalDays;
+            float yellowFraction = yellowCount / (float) totalDays;
+            float redFraction = redCount / (float) totalDays;
 
-        float greenAngle = greenFraction * 360f;
-        float yellowAngle = yellowFraction * 360f;
-        float redAngle = redFraction * 360f;
-        float greyAngle = 360f - (greenAngle + yellowAngle + redAngle);
+            float greenAngle = greenFraction * 360f;
+            float yellowAngle = yellowFraction * 360f;
+            float redAngle = redFraction * 360f;
+            float greyAngle = 360f - (greenAngle + yellowAngle + redAngle);
 
-        float startAngle = -90;
+            float startAngle = -90;
 
-        drawPieSlice(canvas, centerX, centerY, radius, startAngle, greenAngle, darkGreen);
-        drawPieSlice(canvas, centerX, centerY, radius, startAngle + greenAngle, yellowAngle, darkYellow);
-        drawPieSlice(canvas, centerX, centerY, radius, startAngle + greenAngle + yellowAngle, redAngle, darkRed);
-        if (greyAngle > 0.01f)
-            drawPieSlice(canvas, centerX, centerY, radius, startAngle + greenAngle + yellowAngle + redAngle, greyAngle, darkGray);
+            drawPieSlice(canvas, centerX, centerY, radius, startAngle, greenAngle, darkGreen);
+            drawPieSlice(canvas, centerX, centerY, radius, startAngle + greenAngle, yellowAngle, darkYellow);
+            drawPieSlice(canvas, centerX, centerY, radius, startAngle + greenAngle + yellowAngle, redAngle, darkRed);
+            if (greyAngle > 0.01f) {
+                drawPieSlice(canvas, centerX, centerY, radius,
+                        startAngle + greenAngle + yellowAngle + redAngle, greyAngle, darkGray);
+            }
 
-        float legendX = centerX + radius + 40;
-        float legendY = centerY + radius - 10;
+            float legendX = centerX + radius + 40;
+            float legendY = centerY + radius - 10;
 
-        drawLegend(canvas, legendX, legendY, 12, 18, darkGreen, "Green");
-        drawLegend(canvas, legendX, legendY - 18, 12, 18, darkYellow, "Yellow");
-        drawLegend(canvas, legendX, legendY - 36, 12, 18, darkRed, "Red");
-        drawLegend(canvas, legendX, legendY - 54, 12, 18, darkGray, "Invalid");
+            drawLegend(canvas, legendX, legendY, 12, 18, darkGreen, "Green");
+            drawLegend(canvas, legendX, legendY - 18, 12, 18, darkYellow, "Yellow");
+            drawLegend(canvas, legendX, legendY - 36, 12, 18, darkRed, "Red");
+            drawLegend(canvas, legendX, legendY - 54, 12, 18, darkGray, "Invalid");
+        }
 
         document.close();
         output.close();

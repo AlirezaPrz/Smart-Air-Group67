@@ -17,6 +17,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAirSetup">
         <activity
+            android:name=".ChildSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ParentSettingsActivity"
+            android:exported="false" /> <!-- Child -->
+        <activity
+            android:name=".ParentSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".RecheckActivity"
             android:exported="false" />
         <activity
@@ -24,7 +33,7 @@
             android:exported="false" />
         <activity
             android:name=".MedicationInventoryActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".AddEditMedicationActivity"
             android:exported="false" />
@@ -66,7 +75,7 @@
             android:exported="false" />
         <activity
             android:name=".ParentBadgeSettingsActivity"
-            android:exported="false" /> <!-- Child -->
+            android:exported="false" />
         <activity
             android:name=".ChildHomeActivity"
             android:exported="false" />
@@ -76,6 +85,9 @@
         <activity
             android:name=".ChildBadgesActivity"
             android:exported="false" /> <!--  -->
+        <activity
+            android:name=".ChildSettingsActivity"
+            android:exported="false" />
         <activity
             android:name=".HistoryActivity"
             android:exported="false" />
@@ -100,13 +112,12 @@
         <activity
             android:name=".OptionalDataActivity"
             android:exported="false" />
-
         <activity
             android:name=".EmergencyActivity"
             android:exported="false" />
         <activity
-          android:name=".ZoneActivity"
-          android:exported="false" />
+            android:name=".ZoneActivity"
+            android:exported="false" />
         <activity
             android:name=".ZoneActivityChild"
             android:exported="false" />
@@ -118,21 +129,24 @@
             android:exported="false" />
         <activity
             android:name=".MedicationReportActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".ChildOverviewActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".ControllerScheduleActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".SymptomTrendActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".RedFlagsActivity"
             android:exported="false" />
         <activity
             android:name=".PDFStoreActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PDFGenerator"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -154,14 +168,13 @@
 
                 <!-- Custom scheme deep link -->
                 <data
-                    android:scheme="smartair"
-                    android:host="invite" />
+                    android:host="invite"
+                    android:scheme="smartair" />
             </intent-filter>
         </activity>
         <activity
             android:name=".InviteProviderActivity"
             android:exported="false" />
-
 
         <receiver
             android:name=".NotificationReceiver"

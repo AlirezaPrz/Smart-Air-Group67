@@ -9,12 +9,19 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class PrePostCheckActivity extends AppCompatActivity {
 
@@ -40,6 +47,11 @@ public class PrePostCheckActivity extends AppCompatActivity {
     long passedTimestamp;
     String medID;
 
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private String parentUid;
+
+
 
 
     @Override
@@ -52,6 +64,16 @@ public class PrePostCheckActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        if (mAuth.getCurrentUser() != null) {
+            parentUid = mAuth.getCurrentUser().getUid();
+        } else {
+            finish(); // Should never happen, but safe
+        }
+
 
         getIds();
         Intent intent = getIntent();
@@ -135,28 +157,69 @@ public class PrePostCheckActivity extends AppCompatActivity {
         if (nextButton != null) {
             nextButton.setOnClickListener(v -> {
 
-                if(mode == null || mode.equals("post")) {
+                if(mode != null && mode.equals("post")) {
 
-                    //log selected information here.
-                /*
-                my current plan would be to pass it to the next activity if in pre,
-                and save it to firebase logs if in post along with the other needed data:
+                    // 1️⃣ Fetch medication to get isRescue
+                    db.collection("users")
+                            .document(parentUid)
+                            .collection("children")
+                            .document(childId)
+                            .collection("medications")
+                            .document(medID)
+                            .get()
+                            .addOnSuccessListener(doc -> {
 
-                Date - timestamp
+                                boolean isRescue = false;
+                                if (doc.exists() && doc.getBoolean("isRescue") != null) {
 
+                                    isRescue = doc.getBoolean("isRescue");
 
-                maybe put option for training in taking medication tab. yes!
-                remember we have to use this for badges.
+                                }
+                                // Build log entry
+                                Map<String, Object> logMedUseData = new HashMap<>();
+                                logMedUseData.put("timestamp", passedTimestamp);
+                                logMedUseData.put("doseCount", passedDoseCount);
+                                logMedUseData.put("medId", medID);
+                                logMedUseData.put("childId", childId);
+                                logMedUseData.put("preFeeling", passedFeeling);
+                                logMedUseData.put("postFeeling", selected);
+                                logMedUseData.put("feelingChange",
+                                        feelingSpinner.getSelectedItem().toString());
+                                logMedUseData.put("isRescue", isRescue);
 
-                 */
+                                //get is med isRescue
+
+                                // Save to Firebase
+                                db.collection("users")
+                                        .document(parentUid)
+                                        .collection("children")
+                                        .document(childId)
+                                        .collection("medLogs")
+                                        .add(logMedUseData)
+                                        .addOnSuccessListener(docRef -> {
+                                            Toast.makeText(this, "Medication log saved!", Toast.LENGTH_SHORT).show();
+                                            finish(); // go back or go somewhere else
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(this, "Error saving log", Toast.LENGTH_SHORT).show();
+                                            e.printStackTrace();
+                                        });
+
+                            });
+
+                    Intent intent = new Intent(this, ChildHomeActivity.class);
+                    intent.putExtra("CHILD_ID", childId);
+                    startActivity(intent);
 
                 }else{
-                    Intent intent = new Intent(this, RecordMedUsageActivity.class); ////Change this to next page
+                    Intent intent = new Intent(this, RecordMedUsageActivity.class);
                     intent.putExtra("CHILD_ID", childId);
                     intent.putExtra("PRE_FEELING", selected); //passes user choice
                     startActivity(intent);
                 }
+
             });
+
         }
 
     }
@@ -175,8 +238,6 @@ public class PrePostCheckActivity extends AppCompatActivity {
 
         });
 
-
     }
-
 
 }

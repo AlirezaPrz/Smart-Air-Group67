@@ -26,6 +26,12 @@
             android:name=".ParentSettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".RecordMedUsageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PrePostCheckActivity"
+            android:exported="false" />
+        <activity
             android:name=".RecheckActivity"
             android:exported="false" />
         <activity
@@ -33,7 +39,7 @@
             android:exported="false" />
         <activity
             android:name=".MedicationInventoryActivity"
-            android:exported="false" />
+            android:exported="false"/>
         <activity
             android:name=".AddEditMedicationActivity"
             android:exported="false" />
@@ -85,9 +91,6 @@
         <activity
             android:name=".ChildBadgesActivity"
             android:exported="false" /> <!--  -->
-        <activity
-            android:name=".ChildSettingsActivity"
-            android:exported="false" />
         <activity
             android:name=".HistoryActivity"
             android:exported="false" />

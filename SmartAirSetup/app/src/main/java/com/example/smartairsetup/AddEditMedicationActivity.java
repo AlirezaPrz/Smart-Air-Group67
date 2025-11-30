@@ -92,7 +92,7 @@ public class AddEditMedicationActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String mode = intent.getStringExtra("mode");
 
-        if ("edit".equals(mode)) {
+        if (mode == null || "edit".equals(mode)) {
             isEditMode = true;
             passedChildUID= intent.getStringExtra("passedChildUID");
             passedMedID = intent.getStringExtra("passedMedID");
@@ -221,6 +221,9 @@ public class AddEditMedicationActivity extends AppCompatActivity {
                 medData.put("active", true);
 
                 if (isEditMode) {
+
+                    medData.put("med_UUID", passedMedID);      // keep same UUID
+                    medData.put("createdAt", editingMedication.getCreatedAt()); // keep same timestamp
 
                     if (!selectedChildId.equals(passedChildUID)) {
                         //Delete old medication

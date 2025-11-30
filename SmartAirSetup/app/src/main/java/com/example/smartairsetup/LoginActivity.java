@@ -128,10 +128,10 @@ public class LoginActivity extends AppCompatActivity {
                     String parentUid = doc.getString("parentUid");
                     String childDocId = doc.getString("childDocId");
 
-                    // Navigate to child home screen (parent for now since no child)
-                    Intent intent = new Intent(LoginActivity.this, ParentHomeActivity.class);
+                    // Go directly to ChildHomeActivity for child login
+                    Intent intent = new Intent(LoginActivity.this, ChildHomeActivity.class);
                     intent.putExtra("PARENT_UID", parentUid);
-                    intent.putExtra("CHILD_DOC_ID", childDocId);
+                    intent.putExtra("CHILD_ID", childDocId);
                     startActivity(intent);
                     finish();
                 })

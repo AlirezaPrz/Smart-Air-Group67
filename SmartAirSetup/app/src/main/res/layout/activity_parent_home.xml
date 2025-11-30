@@ -6,22 +6,24 @@
     android:layout_height="match_parent"
     android:background="@color/background_colour"
     tools:context=".ParentHomeActivity">
+
+    <!-- Title -->
     <TextView
         android:id="@+id/textParentTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="28dp"
         android:paddingBottom="8dp"
         android:text="Parent Home"
         android:textColor="#1B4F72"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/notificationButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginEnd="28dp"/>
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- Top right: Notification -->
     <ImageButton
         android:id="@+id/notificationButton"
@@ -35,23 +37,23 @@
         android:scaleType="fitCenter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/button_icon_color"
-        app:srcCompat="@drawable/menu_notifications_button_logo" />
+        app:srcCompat="@drawable/menu_notifications_button_logo"
+        app:tint="@color/button_icon_color" />
 
-    <!-- NEW TOP CARD: Child selector + weekly rescue overview -->
+    <!-- Child selector + weekly rescue overview -->
     <FrameLayout
         android:id="@+id/overviewContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginTop="16dp"
         android:background="@drawable/main_content_background"
         android:backgroundTint="@color/white"
         android:elevation="4dp"
-        app:layout_constraintTop_toBottomOf="@id/notificationButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/notificationButton">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -64,11 +66,11 @@
                 android:id="@+id/textWeeklyOverviewTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
                 android:text="Child Summary"
-                android:textSize="16sp"
-                android:textStyle="bold"
                 android:textColor="@android:color/black"
-                android:paddingBottom="4dp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <Button
                 android:id="@+id/buttonOverviewSelectChild"
@@ -89,139 +91,151 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Rescue medication count this week: 0"
-                android:textSize="14sp"
-                android:textColor="@android:color/black" />
+                android:textColor="@android:color/black"
+                android:textSize="14sp" />
 
         </LinearLayout>
     </FrameLayout>
 
-    <!-- CENTER: Main Parent Home + Shortcuts (UNCHANGED, just moved below overviewContainer) -->
+    <!-- Main shortcuts card -->
     <ScrollView
         android:id="@+id/shortcutContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/main_content_background"
         android:backgroundTint="@color/white"
         android:elevation="4dp"
-        app:layout_constraintTop_toBottomOf="@id/overviewContainer"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavBackground"
+        app:layout_constraintBottom_toTopOf="@id/safetyNote"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/overviewContainer">
 
-        <!-- Parent Home content in Main + Shortcuts title -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="24dp"
             android:background="@android:color/transparent">
 
-            <!-- Shortcuts title -->
             <TextView
                 android:id="@+id/shortcutsTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Shortcuts"
+                android:textColor="@android:color/black"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:textStyle="bold" />
 
-            <!-- Buttons in Main: Shortcuts area -->
             <Button
                 android:id="@+id/buttonDailyCheckIn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Daily Check-in"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="Daily Check-in" />
 
             <Button
                 android:id="@+id/buttonViewHistory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="View History"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="View History" />
 
             <Button
                 android:id="@+id/buttonChildOverview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Child Overview"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="Child Overview" />
 
             <Button
                 android:id="@+id/buttonSetPB"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Set Personal Best"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="Set Personal Best" />
 
             <Button
                 android:id="@+id/buttonEnterPEF"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Enter PEF"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="Enter PEF" />
 
             <Button
                 android:id="@+id/buttonAddChild"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Add Child"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="Add Child" />
 
             <Button
                 android:id="@+id/buttonAddBadges"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Add Badges"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="Add Badges" />
 
             <Button
                 android:id="@+id/buttonMedicationInventory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Medication Inventory"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="Medication Inventory" />
+
             <Button
                 android:id="@+id/buttonPDF"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="PDF"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="PDF" />
+
             <Button
                 android:id="@+id/buttonZone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Zone"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
+                android:text="Zone" />
+
             <Button
                 android:id="@+id/buttonControllerLog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Controller Logs"
+                android:layout_marginTop="12dp"
                 android:backgroundTint="@color/button_icon_color"
-                android:layout_marginTop="12dp" />
-
+                android:text="Controller Logs" />
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- BOTTOM NAV BACKGROUND -->
+    <!-- Safety note: sits ABOVE the bottom nav -->
+    <include
+        android:id="@+id/safetyNote"
+        layout="@layout/view_safety_note"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavBackground"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Bottom nav background -->
     <View
         android:id="@+id/bottomNavBackground"
         android:layout_width="0dp"
@@ -232,10 +246,10 @@
         android:background="@drawable/bottom_nav_background"
         android:elevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Home Button + Text -->
+    <!-- Home -->
     <ImageButton
         android:id="@+id/homeButton"
         android:layout_width="0dp"
@@ -267,7 +281,7 @@
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintStart_toStartOf="@id/bottomNavBackground" />
 
-    <!-- Family Button + Text -->
+    <!-- Family -->
     <ImageButton
         android:id="@+id/familyButton"
         android:layout_width="0dp"
@@ -298,7 +312,7 @@
         app:layout_constraintEnd_toStartOf="@+id/emergencyText"
         app:layout_constraintStart_toEndOf="@+id/homeText" />
 
-    <!-- Emergency Button + Text -->
+    <!-- Emergency -->
     <ImageButton
         android:id="@+id/emergencyButton"
         android:layout_width="0dp"
@@ -329,7 +343,7 @@
         app:layout_constraintEnd_toStartOf="@+id/settingsText"
         app:layout_constraintStart_toEndOf="@+id/familyText" />
 
-    <!-- Settings Button + Text -->
+    <!-- Settings -->
     <ImageButton
         android:id="@+id/settingsButton"
         android:layout_width="0dp"
@@ -359,7 +373,5 @@
         app:layout_constraintBottom_toBottomOf="@id/bottomNavBackground"
         app:layout_constraintEnd_toEndOf="@id/bottomNavBackground"
         app:layout_constraintStart_toEndOf="@+id/emergencyText" />
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

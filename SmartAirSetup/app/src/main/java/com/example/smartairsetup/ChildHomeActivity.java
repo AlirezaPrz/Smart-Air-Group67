@@ -45,17 +45,32 @@ public class ChildHomeActivity extends AbstractNavigation {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        Intent intent = getIntent();
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            Toast.makeText(this, "You are not logged in.", Toast.LENGTH_SHORT).show();
+
+// Case 1: parent/provider logged in with FirebaseAuth
+        if (currentUser != null) {
+            parentUid = currentUser.getUid();
+        }
+// Case 2: child login (no FirebaseAuth user, we rely on intent extras)
+        else if (intent != null) {
+            parentUid = intent.getStringExtra("PARENT_UID");
+        }
+
+        if (parentUid == null || parentUid.isEmpty()) {
+            Toast.makeText(this, "Missing parent id.", Toast.LENGTH_SHORT).show();
             return;
         }
-        parentUid = currentUser.getUid();
 
-        Intent intent = getIntent();
+// Child id is always passed via intent
         if (intent != null) {
             childId = intent.getStringExtra("CHILD_ID");
+            if (childId == null || childId.isEmpty()) {
+                // Backward compatibility if you ever used CHILD_DOC_ID
+                childId = intent.getStringExtra("CHILD_DOC_ID");
+            }
         }
+
         if (childId == null || childId.isEmpty()) {
             Toast.makeText(this, "Child id is missing.", Toast.LENGTH_SHORT).show();
             return;

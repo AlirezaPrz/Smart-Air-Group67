@@ -93,6 +93,14 @@
                 android:text="Rescue medication count this week: 0"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
+            <TextView
+                android:id="@+id/textLastRescueUsed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Last rescue medication use: —"
+                android:textColor="@android:color/black"
+                android:textSize="14sp" />
 
             <!-- Tag: Weekly rescue is shared -->
             <TextView

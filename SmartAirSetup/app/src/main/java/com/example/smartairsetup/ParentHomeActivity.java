@@ -2,6 +2,7 @@ package com.example.smartairsetup;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -10,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
+import com.google.firebase.firestore.Query;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -19,6 +21,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class ParentHomeActivity extends AbstractNavigation {
 
@@ -40,6 +45,8 @@ public class ParentHomeActivity extends AbstractNavigation {
     private TextView tagSharedRescue, tagSharedSymptoms, tagSharedHistory, tagSharedPB,
             tagSharedPEF, tagSharedPDF, tagSharedZone, tagSharedController;
 
+    private TextView textLastRescueUsed;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +63,8 @@ public class ParentHomeActivity extends AbstractNavigation {
         tagSharedPDF = findViewById(R.id.tagSharedPDF);
         tagSharedZone = findViewById(R.id.tagSharedZone);
         tagSharedController = findViewById(R.id.tagSharedController);
+
+        textLastRescueUsed = findViewById(R.id.textLastRescueUsed);
 
         hideAllShareTags(); // default state
 
@@ -233,6 +242,7 @@ public class ParentHomeActivity extends AbstractNavigation {
                         buttonOverviewSelectChild.setText(name);
 
                         loadWeeklyRescueForChild(selectedOverviewChildId);
+                        loadLastRescueUse(selectedOverviewChildId);
                         loadSharingTagsForSelectedChild(); // <-- key line
                     }
                 })
@@ -282,6 +292,51 @@ public class ParentHomeActivity extends AbstractNavigation {
     private void setTagVisible(TextView tag, boolean visible) {
         if (tag == null) return;
         tag.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
+    private void loadLastRescueUse(String childId) {
+        Log.d("LastRescue", "parentUid=" + parentUid + " childId=" + childId);
+        db.collection("users")
+                .document(parentUid)
+                .collection("children")
+                .document(childId)
+                .collection("medLogs")
+                .whereEqualTo("isRescue", true)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    if (qs.isEmpty()) {
+                        textLastRescueUsed.setText("Last rescue medication use: —");
+                        return;
+                    }
+
+                    DocumentSnapshot doc = qs.getDocuments().get(0);
+
+                    // timestamp might be Long/Double/Timestamp depending on how you wrote it
+                    Object raw = doc.get("timestamp");
+                    Long tsMillis = null;
+
+                    if (raw instanceof Long) tsMillis = (Long) raw;
+                    else if (raw instanceof Double) tsMillis = ((Double) raw).longValue();
+                    else if (raw instanceof com.google.firebase.Timestamp)
+                        tsMillis = ((com.google.firebase.Timestamp) raw).toDate().getTime();
+
+                    if (tsMillis == null) {
+                        textLastRescueUsed.setText("Last rescue medication use: —");
+                        return;
+                    }
+
+                    java.text.DateFormat fmt =
+                            java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT);
+                    String when = fmt.format(new java.util.Date(tsMillis));
+
+                    textLastRescueUsed.setText("Last rescue medication use: " + when);
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("LastRescue", "Failed to load last rescue use", e);
+                    textLastRescueUsed.setText("Last rescue medication use: —");
+                });
     }
 
     private void loadSharingTagsForSelectedChild() {

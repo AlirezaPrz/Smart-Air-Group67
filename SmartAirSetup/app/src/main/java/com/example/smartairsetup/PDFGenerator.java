@@ -138,7 +138,7 @@ public class PDFGenerator {
                     Long timestamp = doc.getLong("timestamp");
                     if (timestamp == null || timestamp < startTimestamp || timestamp > endTimestamp) continue;
 
-                    String zone = doc.getString("triage-zone");
+                    String zone = doc.getString("zone");
                     String message = doc.getString("message-triage");
 
                     // Additional flags
@@ -282,7 +282,7 @@ public class PDFGenerator {
         document.add(new Paragraph("\n"));
 
         // Pie chart
-        document.add(new Paragraph("5. Zone Distribution Pie Chart", font));
+        document.add(new Paragraph("5. Zone Distribution Pie Chart (PEF)", font));
         if (shareSummaryCharts) {
 
             PdfContentByte canvas = writer.getDirectContent();

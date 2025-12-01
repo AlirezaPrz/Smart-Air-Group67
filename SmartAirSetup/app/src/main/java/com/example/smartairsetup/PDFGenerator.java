@@ -343,7 +343,7 @@ public class PDFGenerator {
         } else {
             document.add(new Paragraph("Parent has chosen not to share triage incident details with the provider."));
         }
-        document.add(new Paragraph("\n"));
+        document.newPage();
 
         // Pie chart
         document.add(new Paragraph("7. Zone Distribution Pie Chart (PEF)", font));

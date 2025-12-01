@@ -76,22 +76,18 @@ public class EmergencySelectorActivity_Child extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Log.e("EmergencySelectorChild", "Failed to load child name", e));
 
-        // --- Save button → logs triage ---
+        // --- Save button -> logs triage ---
         saveButton.setOnClickListener(v -> saveTriageLog());
 
-        // --- Record Medication → goes to RecordMedicationTriage ---
+        // --- Record Medication -> goes to RecordMedicationTriage ---
         recordMedicationButton.setOnClickListener(v -> {
             Intent recordIntent = new Intent(EmergencySelectorActivity_Child.this, RecordMedicationTriage.class);
             recordIntent.putExtra("PARENT_UID", parentUid);
             recordIntent.putExtra("CHILD_ID", childId);
-            recordIntent.putExtra("returnClass", EmergencySelectorActivity_Child.this.getClass().getName());
-            recordIntent.putExtra("cantSpeakFullSentences", cantSpeakFullSentences);
-            recordIntent.putExtra("chestRetractions", chestRetractions);
-            recordIntent.putExtra("blueLipsNails", blueLipsNails);
             startActivity(recordIntent);
         });
 
-        // --- Back button → returns to EmergencyActivity_Child ---
+        // --- Back button -> returns to EmergencyActivity_Child ---
         backButton.setOnClickListener(v -> {
             Intent backIntent = new Intent(EmergencySelectorActivity_Child.this, EmergencyActivity_Child.class);
             backIntent.putExtra("PARENT_UID", parentUid);
@@ -103,7 +99,7 @@ public class EmergencySelectorActivity_Child extends AppCompatActivity {
             finish();
         });
 
-        // --- Next button → goes to ChildHomeActivity ---
+        // --- Next button -> goes to ChildHomeActivity ---
         nextButton.setOnClickListener(v -> {
             Intent intentNext = new Intent(EmergencySelectorActivity_Child.this, ChildHomeActivity.class);
             intentNext.putExtra("PARENT_UID", parentUid);

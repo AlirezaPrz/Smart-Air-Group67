@@ -135,7 +135,7 @@ public class EmergencySelectorActivity extends AppCompatActivity {
                 .document(dateId);
 
         Map<String, Object> data = new HashMap<>();
-        data.put("triage-zone", "Emergency");
+        data.put("zone", "Emergency");
         data.put("message-triage", message);
         data.put("timestamp", System.currentTimeMillis());
 

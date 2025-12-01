@@ -135,7 +135,7 @@ public class EmergencySelectorActivity_Child extends AppCompatActivity {
                 .collection("entries")
                 .document(dateId)
                 .set(new HashMap<String, Object>() {{
-                    put("triage-zone", "Emergency");
+                    put("zone", "Emergency");
                     put("message-triage", message);
                     put("timestamp", System.currentTimeMillis());
                     put("cantSpeakFullSentences", cantSpeakFullSentences);

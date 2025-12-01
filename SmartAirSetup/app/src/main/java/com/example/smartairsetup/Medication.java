@@ -142,8 +142,6 @@ public class Medication implements DateCalculations {
         return this.puffsLeft;
     }
 
-    /// ///////////////////////////////////////////////I want to change this to doses left but am worried it will mess up other peoples firebase code
-
     public void setPuffsLeft(int puffsLeft) {
         this.puffsLeft = puffsLeft;
     }

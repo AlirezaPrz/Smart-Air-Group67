@@ -180,6 +180,11 @@ public class ParentHomeActivity extends AbstractNavigation {
         buttonOverviewSelectChild.setOnClickListener(v -> showOverviewChildDialog());
 
         loadChildren();
+
+        //check notification permissions
+        NotificationPermissionsHelper.ensureNotificationPermissions(this);
+        NotificationPermissionsHelper.ensureAlarmPermissions(this);
+
     }
 
     @Override

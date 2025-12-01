@@ -58,6 +58,11 @@ public class MedicationInventoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_medication_inventory);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         medDetailsSV = findViewById(R.id.medDetailsSV);
         medNameTV = findViewById(R.id.medNameTV);
@@ -72,11 +77,9 @@ public class MedicationInventoryActivity extends AppCompatActivity {
         setEditButton();
         setNotifButton();
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        //check notification permissions
+        NotificationPermissionsHelper.ensureNotificationPermissions(this);
+        NotificationPermissionsHelper.ensureAlarmPermissions(this);
     }
 
     @Override

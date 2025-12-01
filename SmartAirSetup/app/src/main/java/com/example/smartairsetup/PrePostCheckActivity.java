@@ -176,18 +176,16 @@ public class PrePostCheckActivity extends AppCompatActivity {
 
                                 }
                                 // Build log entry
-                                Map<String, Object> logMedUseData = new HashMap<>();
-                                logMedUseData.put("timestamp", passedTimestamp);
-                                logMedUseData.put("doseCount", passedDoseCount);
-                                logMedUseData.put("medId", medID);
-                                logMedUseData.put("childId", childId);
-                                logMedUseData.put("preFeeling", passedFeeling);
-                                logMedUseData.put("postFeeling", selected);
-                                logMedUseData.put("feelingChange",
+                                Map<String, Object> medLogs = new HashMap<>();
+                                medLogs.put("timestamp", passedTimestamp);
+                                medLogs.put("doseCount", passedDoseCount);
+                                medLogs.put("medId", medID);
+                                medLogs.put("childId", childId);
+                                medLogs.put("preFeeling", passedFeeling);
+                                medLogs.put("postFeeling", selected);
+                                medLogs.put("feelingChange",
                                         feelingSpinner.getSelectedItem().toString());
-                                logMedUseData.put("isRescue", isRescue);
-
-                                //get is med isRescue
+                                medLogs.put("isRescue", isRescue);
 
                                 // Save to Firebase
                                 db.collection("users")
@@ -195,7 +193,7 @@ public class PrePostCheckActivity extends AppCompatActivity {
                                         .collection("children")
                                         .document(childId)
                                         .collection("medLogs")
-                                        .add(logMedUseData)
+                                        .add(medLogs)
                                         .addOnSuccessListener(docRef -> {
                                             Toast.makeText(this, "Medication log saved!", Toast.LENGTH_SHORT).show();
                                             finish(); // go back or go somewhere else

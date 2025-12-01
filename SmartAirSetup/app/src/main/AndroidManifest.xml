@@ -17,6 +17,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAirSetup">
         <activity
+            android:name=".TechniqueTraining"
+            android:exported="false" />
+
+        <activity
+            android:name=".TechniqueTrainingVideo"
+            android:exported="false" />
+        <activity
             android:name=".ChildSettingsActivity"
             android:exported="false" />
         <activity

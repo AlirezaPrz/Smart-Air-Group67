@@ -1,6 +1,30 @@
 # Smart Air – Code Documentation
 
 Smart Air helps parents, children, and healthcare providers track and manage asthma-related data. Core features include symptom logging, medication tracking, PEF measurement, triage support, and sharing summaries with providers.
+
+---
+
+## Getting Started (Run Locally)
+
+### Requirements
+- Android Studio (recommended: latest stable)
+- Android SDK installed
+- A Firebase project
+
+### Setup Steps
+1. Clone the repo and open it in Android Studio.
+2. In Firebase Console:
+   - Create a project
+   - Enable **Authentication → Email/Password**
+   - Create a **Firestore Database**
+3. Download `google-services.json` from Firebase:
+   - Firebase Console → Project settings → Your apps → Android → download
+   - Place it here:
+     - `app/google-services.json`
+4. Sync Gradle and run the app:
+   - Android Studio → **Sync Now**
+   - Select an emulator/device → **Run ▶**
+  
 ---
 
 ## Sample Credentials (from video)
@@ -99,6 +123,89 @@ Smart Air helps parents, children, and healthcare providers track and manage ast
 
 ---
 
+## Provider View (Read-only Access)
+
+Providers can only view data that the parent enables per child.
+
+Provider home loads children where:
+- `children.sharedProviderUids` contains the provider UID
+
+Child portal shows buttons only if the corresponding sharing flag is true:
+- Rescue Logs → `shareRescueLogs`
+- Controller Summary → `shareControllerSummary`
+- Symptoms → `shareSymptoms`
+- Triggers → `shareTriggers`
+- PEF Logs → `sharePEF`
+- Triage Incidents → `shareTriageIncidents`
+- Summary Charts → `shareSummaryCharts`
+
+---
+
+## Firestore Data Model (Key Paths)
+
+### Users + Children
+- `users/{uid}`  
+  Fields: `email`, `role` (parent/child/provider), etc.
+
+- `users/{parentUid}/children/{childId}`  
+  Fields:
+  - `name`, `dob` (or age fields if used)
+  - Provider sharing flags:
+    - `shareRescueLogs`
+    - `shareControllerSummary`
+    - `shareSymptoms`
+    - `shareTriggers`
+    - `sharePEF`
+    - `shareTriageIncidents`
+    - `shareSummaryCharts`
+  - Provider access list:
+    - `sharedProviderUids` (array of provider UIDs)
+
+### Medication Logs
+- `users/{parentUid}/children/{childId}/medLogs/{logId}`
+  Example fields:
+  - `medId` (ID of medication in `.../medications`)
+  - `doseCount`
+  - `timestamp` (stored as Long millis)
+  - `isRescue` (boolean)
+
+### Daily Check-ins (Symptoms)
+- `users/{parentUid}/dailyCheckins/{docId}`
+  Fields:
+  - `childId`, `childName`, `date`
+  - `nightWaking`, `activityLimits`, `coughWheeze`
+  - `triggers` (array)
+  - `authorLabel` (parent/child)
+
+### PEF Logs
+- `users/{parentUid}/children/{childId}/PEF/logs/daily/{dateDoc}`
+  Fields:
+  - `date`
+  - `timestamp` (Long millis)
+  - `pb`, `dailyPEF`, `prePEF`, `postPEF`
+  - `zone`
+
+---
+
+## Firestore Indexes Required
+
+Some queries require composite indexes in Firestore.
+
+### Rescue Logs Query (Provider + Parent summary)
+Collection: `medLogs`  
+Filters:
+- `where isRescue == true`
+Sort:
+- `orderBy timestamp desc`
+
+✅ You must create a composite index:
+- `isRescue` (Ascending)
+- `timestamp` (Descending)
+
+If you see the error “The query requires an index”, click the Firebase Console link in Logcat and create it.
+
+---
+
 ## **Medication Logging**
 - **Parent:** Adds medication inventory under `Medication Inventory`. Can view medication logs under `Medication Logs`.
 - **Child:** Logs medication via `Take Medication`.
@@ -113,3 +220,13 @@ Smart Air helps parents, children, and healthcare providers track and manage ast
 ## **Onboarding**
 - Each user type receives onboarding on first use.
 - If a child accesses their account through the Parent app or logs in independently, onboarding is triggered for them as well.
+
+---
+
+## Notes / Known Limitations
+- Some Firestore queries require composite indexes (see above).
+- Triage incidents are derived from PEF daily logs (based on zone / thresholds used in the app).
+- If data is missing on provider screens, confirm:
+  1) Parent enabled the sharing toggle
+  2) Provider UID is in `sharedProviderUids`
+  3) Firestore rules allow the provider read access

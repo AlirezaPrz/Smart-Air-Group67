@@ -21,6 +21,7 @@ import com.example.smartairsetup.zone.ZoneActivityChild;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -211,7 +212,7 @@ public class ChildHomeActivity extends AbstractNavigation {
 
             // For now I just send a simple alert notification.
             // Ben can later make this include child name, triage info, etc.
-            sendSimpleAlertToParent();
+            sendTriageAlertToParent();
         });
 
     }
@@ -240,6 +241,25 @@ public class ChildHomeActivity extends AbstractNavigation {
         sendBroadcast(intent);
     }
 
+    private void sendTriageAlertToParent() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        Map<String, Object> alert = new HashMap<>();
+        alert.put("title", "Triage Alert");
+        alert.put("message", "Your child has requested help. Open Smart Air for details.");
+        alert.put("timestamp", FieldValue.serverTimestamp());
+
+        db.collection("alerts")
+                .document(parentUid)
+                .collection("pending")
+                .add(alert)
+                .addOnSuccessListener(doc -> {
+                    Toast.makeText(this, "Alert sent to parent", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to send alert: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
 
     private void setGreeting(String name) {
         if (name != null && !name.isEmpty()) {
@@ -249,10 +269,6 @@ public class ChildHomeActivity extends AbstractNavigation {
             Toast.makeText(this, "Child name is empty.", Toast.LENGTH_SHORT).show();
         }
     }
-
-    // -----------------------
-    // Streak loading
-    // -----------------------
 
     private void loadControllerStreak() {
         long now = System.currentTimeMillis();
@@ -382,10 +398,6 @@ public class ChildHomeActivity extends AbstractNavigation {
         }
         return streak;
     }
-
-    // -----------------------
-    // Bottom navigation
-    // -----------------------
 
     @Override
     protected void onHomeClicked() {

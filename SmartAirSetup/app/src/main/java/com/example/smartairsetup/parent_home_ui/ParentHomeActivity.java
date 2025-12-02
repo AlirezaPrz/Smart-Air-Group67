@@ -34,9 +34,11 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Date;
 
@@ -194,9 +196,7 @@ public class ParentHomeActivity extends AbstractNavigation {
 
         loadChildren();
 
-        //check notification permissions
-        NotificationPermissionsHelper.ensureNotificationPermissions(this);
-        NotificationPermissionsHelper.ensureAlarmPermissions(this);
+        getDeviceTokenForNotif();
 
     }
 
@@ -207,6 +207,10 @@ public class ParentHomeActivity extends AbstractNavigation {
 
         // If we already have a child selected, refresh the tags (in case switches changed)
         loadSharingTagsForSelectedChild();
+
+        //check notification permissions
+        NotificationPermissionsHelper.ensureNotificationPermissions(this);
+        NotificationPermissionsHelper.ensureAlarmPermissions(this);
     }
 
     private void loadChildren() {
@@ -464,4 +468,23 @@ public class ParentHomeActivity extends AbstractNavigation {
     protected void onSettingsClicked() {
         startActivity(new Intent(ParentHomeActivity.this, ParentSettingsActivity.class));
     }
+
+    private void getDeviceTokenForNotif(){
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    String parentUid = FirebaseAuth.getInstance().getUid();
+
+                    FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(parentUid)
+                            .collection("device_tokens")
+                            .document(token)
+                            .set(Collections.singletonMap("token", token));
+                });
+
+    }
+
+
+
+
 }

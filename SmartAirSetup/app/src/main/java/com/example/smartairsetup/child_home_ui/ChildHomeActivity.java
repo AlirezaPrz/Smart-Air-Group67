@@ -13,6 +13,7 @@ import com.example.smartairsetup.navigation.AbstractNavigation;
 import com.example.smartairsetup.badges.ChildBadgesActivity;
 import com.example.smartairsetup.checkin.PrePostCheckActivity;
 import com.example.smartairsetup.R;
+import com.example.smartairsetup.technique.TechniqueTraining;
 import com.example.smartairsetup.triage.RedFlagsActivity_Child;
 import com.example.smartairsetup.zone.ZoneActivityChild;
 import com.google.firebase.auth.FirebaseAuth;
@@ -208,6 +209,22 @@ public class ChildHomeActivity extends AbstractNavigation {
                 return;
             }
             Intent zoneIntent = new Intent(ChildHomeActivity.this, ZoneActivityChild.class);
+            zoneIntent.putExtra("CHILD_ID", childId);
+            zoneIntent.putExtra("PARENT_UID", parentUid);
+            startActivity(zoneIntent);
+        });
+
+        ImageButton buttonInhalerTechnique = findViewById(R.id.buttonInhalerTechnique);
+        buttonInhalerTechnique.setOnClickListener(v -> {
+            if (childId == null || childId.isEmpty() || parentUid == null || parentUid.isEmpty()) {
+                Toast.makeText(
+                        ChildHomeActivity.this,
+                        "Missing child or parent ID.",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+            Intent zoneIntent = new Intent(ChildHomeActivity.this, TechniqueTraining.class);
             zoneIntent.putExtra("CHILD_ID", childId);
             zoneIntent.putExtra("PARENT_UID", parentUid);
             startActivity(zoneIntent);

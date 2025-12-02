@@ -11,23 +11,17 @@ import androidx.annotation.Nullable;
 
 import com.example.smartairsetup.navigation.AbstractNavigation;
 import com.example.smartairsetup.badges.ChildBadgesActivity;
-import com.example.smartairsetup.checkin.PrePostCheckActivity;
+import com.example.smartairsetup.medlog.PrePostCheckActivity;
 import com.example.smartairsetup.R;
 import com.example.smartairsetup.notification.AlertHelper;
-import com.example.smartairsetup.notification.NotificationPermissionsHelper;
-import com.example.smartairsetup.notification.NotificationReceiver;
 import com.example.smartairsetup.technique.TechniqueTraining;
 import com.example.smartairsetup.triage.RedFlagsActivity_Child;
 import com.example.smartairsetup.zone.ZoneActivityChild;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.example.smartairsetup.notification.AlertRepository;
-import com.example.smartairsetup.notification.NotificationPermissionsHelper;
-import com.example.smartairsetup.notification.NotificationReceiver;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -232,19 +226,20 @@ public class ChildHomeActivity extends AbstractNavigation {
 
 
         ImageButton alertButton = findViewById(R.id.notificationButton);
-        alertButton.setOnClickListener(v ->{
-        if (childId == null || childId.isEmpty()) {
-            Toast.makeText(
-                    ChildHomeActivity.this,
-                    "Please add a child first.",
-                    Toast.LENGTH_SHORT
-            ).show();
+        alertButton.setOnClickListener(v -> {
+            if (childId == null || childId.isEmpty()) {
+                Toast.makeText(
+                        ChildHomeActivity.this,
+                        "Please add a child first.",
+                        Toast.LENGTH_SHORT
+                ).show();
             }
             //a helper method that deals with sending alerts
             AlertHelper.sendAlertToParent(parentUid, childId, "This is a test Alert!", this);
         });
 
     }
+
     private void setGreeting(String name) {
         if (name != null && !name.isEmpty()) {
             String message = "Hi, " + name;

@@ -56,7 +56,7 @@
             android:name=".medlog.RecordMedUsageActivity"
             android:exported="false" />
         <activity
-            android:name=".checkin.PrePostCheckActivity"
+            android:name=".medlog.PrePostCheckActivity"
             android:exported="false" />
         <activity
             android:name=".triage.RecheckActivity"

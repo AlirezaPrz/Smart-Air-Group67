@@ -1,5 +1,6 @@
-package com.example.smartairsetup.checkin;
+package com.example.smartairsetup.medlog;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -19,7 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.smartairsetup.R;
 import com.example.smartairsetup.child_home_ui.ChildHomeActivity;
-import com.example.smartairsetup.medlog.RecordMedUsageActivity;
+import com.example.smartairsetup.notification.AlertHelper;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -187,8 +188,13 @@ public class PrePostCheckActivity extends AppCompatActivity {
                                 medLogs.put("childId", childId);
                                 medLogs.put("preFeeling", passedFeeling);
                                 medLogs.put("postFeeling", selected);
-                                medLogs.put("feelingChange",
-                                        feelingSpinner.getSelectedItem().toString());
+
+                                String feelingChange = feelingSpinner.getSelectedItem().toString();
+                                if(feelingChange.equals("Worse")){
+                                    //immediately sends alert to parent
+                                    AlertHelper.sendAlertToParent(parentUid, childId, "WORSE_AFTER_DOSE", this);
+                                }
+                                medLogs.put("feelingChange", feelingChange);
                                 medLogs.put("isRescue", isRescue);
 
                                 // Save to Firebase

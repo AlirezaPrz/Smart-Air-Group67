@@ -24,6 +24,9 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.example.smartairsetup.notification.AlertRepository;
+import com.example.smartairsetup.notification.NotificationPermissionsHelper;
+import com.example.smartairsetup.notification.NotificationReceiver;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -97,9 +100,7 @@ public class ChildHomeActivity extends AbstractNavigation {
         setButtons();
 
         ImageButton notificationButton = findViewById(R.id.notificationButton);
-        notificationButton.setOnClickListener(v ->
-                Toast.makeText(this, "Notifications coming soon.", Toast.LENGTH_SHORT).show()
-        );
+        notificationButton.setOnClickListener(v -> sendSimpleAlertToParent());
     }
 
     @Override
@@ -223,21 +224,38 @@ public class ChildHomeActivity extends AbstractNavigation {
      * and when this is called (triage start, escalation, etc.).
      */
     private void sendSimpleAlertToParent() {
-        // Make sure notifications are allowed on this device.
+        if (childId == null || childId.isEmpty()) {
+            Toast.makeText(this, "Please add a child first.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (parentUid == null || parentUid.isEmpty()) {
+            Toast.makeText(this, "Parent account not found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 1) Send alert to Firestore (cloud)
+        AlertRepository alertRepo = new AlertRepository();
+        String message = "Your child has requested help. Open Smart Air for details.";
+
+        alertRepo.sendAlert(
+                parentUid,
+                childId,
+                "TRIAGE_START",
+                message,
+                aVoid -> Toast.makeText(this, "Alert sent to parent.", Toast.LENGTH_SHORT).show(),
+                e -> Toast.makeText(this, "Failed to send alert: " + e.getMessage(), Toast.LENGTH_LONG).show()
+        );
+
+        // 2) Optional – local notification so you can see something even on one device
         if (!NotificationPermissionsHelper.ensureNotificationPermissions(this)) {
             return;
         }
 
         Intent intent = new Intent(this, NotificationReceiver.class);
         intent.putExtra(NotificationReceiver.EXTRA_TITLE, "Triage Alert");
-        intent.putExtra(
-                NotificationReceiver.EXTRA_MESSAGE,
-                "Your child has requested help. Open Smart Air for details."
-        );
-        // Give alerts a different ID from the default medication reminder
-        intent.putExtra(NotificationReceiver.EXTRA_ID, 100);
-
-        // Immediate broadcast – no AlarmManager, fires right away
+        intent.putExtra(NotificationReceiver.EXTRA_MESSAGE, message);
+        intent.putExtra(NotificationReceiver.EXTRA_ID, (int) System.currentTimeMillis());
         sendBroadcast(intent);
     }
 

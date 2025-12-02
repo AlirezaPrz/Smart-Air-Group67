@@ -26,6 +26,11 @@ import com.example.smartairsetup.pdf.PDFStoreActivity;
 import com.example.smartairsetup.pef.PEFActivity;
 import com.example.smartairsetup.triage.RedFlagsActivity;
 import com.example.smartairsetup.zone.ZoneActivity;
+import com.example.smartairsetup.notification.NotificationReceiver;
+import com.example.smartairsetup.notification.NotificationPermissionsHelper;
+
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.auth.FirebaseAuth;
@@ -55,7 +60,7 @@ public class ParentHomeActivity extends AbstractNavigation {
     private TextView textWeeklyRescue;
     private Button buttonOverviewSelectChild;
     private String selectedOverviewChildId;
-
+    private ListenerRegistration alertsListener;
     // Shared-with-provider tags (in XML)
     private TextView tagSharedRescue, tagSharedSymptoms, tagSharedHistory, tagSharedPB,
             tagSharedPEF, tagSharedPDF, tagSharedZone, tagSharedController;
@@ -201,6 +206,15 @@ public class ParentHomeActivity extends AbstractNavigation {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (alertsListener != null) {
+            alertsListener.remove();
+            alertsListener = null;
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         loadChildren();
@@ -216,6 +230,8 @@ public class ParentHomeActivity extends AbstractNavigation {
         }
 
         parentUid = mAuth.getCurrentUser().getUid();
+
+        subscribeToAlertsForParent(parentUid);
 
         CollectionReference childrenRef = db.collection("users")
                 .document(parentUid)
@@ -424,6 +440,80 @@ public class ParentHomeActivity extends AbstractNavigation {
                     setTagVisible(tagSharedController, shareControllerSummary);
                 })
                 .addOnFailureListener(e -> hideAllShareTags());
+    }
+
+    private void subscribeToAlertsForParent(String parentUid) {
+        // Clean old listener if any (e.g. after role switch / re-login)
+        if (alertsListener != null) {
+            alertsListener.remove();
+            alertsListener = null;
+        }
+
+        alertsListener = db.collection("users")
+                .document(parentUid)
+                .collection("alerts")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(20)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null) {
+                        Log.e("ParentAlerts", "Listener error", e);
+                        return;
+                    }
+                    if (snap == null) return;
+
+                    for (DocumentChange change : snap.getDocumentChanges()) {
+                        if (change.getType() != DocumentChange.Type.ADDED) continue;
+
+                        DocumentSnapshot doc = change.getDocument();
+
+                        Boolean handled = doc.getBoolean("handled");
+                        if (Boolean.TRUE.equals(handled)) {
+                            continue; // already shown
+                        }
+
+                        String type = doc.getString("type");
+                        String message = doc.getString("message");
+                        if (message == null) message = "Alert from your child.";
+
+                        showAlertNotification(type, message);
+
+                        // Mark as handled so we don't spam the parent
+                        doc.getReference().update("handled", true);
+                    }
+                });
+    }
+
+    private void showAlertNotification(String type, String message) {
+        if (!NotificationPermissionsHelper.ensureNotificationPermissions(this)) {
+            return;
+        }
+
+        String title;
+        if ("TRIAGE_START".equals(type)) {
+            title = "Triage started";
+        } else if ("TRIAGE_ESCALATION".equals(type)) {
+            title = "Triage escalation";
+        } else if ("RED_ZONE".equals(type)) {
+            title = "Red-zone day";
+        } else if ("RESCUE_REPEATED".equals(type)) {
+            title = "Frequent rescue use";
+        } else if ("INVENTORY_LOW".equals(type)) {
+            title = "Medication inventory low";
+        } else if ("WORSE_AFTER_DOSE".equals(type)) {
+            title = "Symptoms worse after dose";
+        } else {
+            title = "SmartAir alert";
+        }
+
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        intent.putExtra(NotificationReceiver.EXTRA_TITLE, title);
+        intent.putExtra(NotificationReceiver.EXTRA_MESSAGE, message);
+        intent.putExtra(
+                NotificationReceiver.EXTRA_ID,
+                (int) System.currentTimeMillis()
+        );
+
+        sendBroadcast(intent);
     }
 
     // ---------------- Existing navigation helpers ----------------

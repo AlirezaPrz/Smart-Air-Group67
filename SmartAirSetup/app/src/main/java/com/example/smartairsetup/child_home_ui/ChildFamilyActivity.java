@@ -24,7 +24,7 @@ public class ChildFamilyActivity extends AbstractNavigation {
     private LinearLayout familyListContainer;
 
     private String parentUid;
-    private String childId; // current logged-in child
+    private String childId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

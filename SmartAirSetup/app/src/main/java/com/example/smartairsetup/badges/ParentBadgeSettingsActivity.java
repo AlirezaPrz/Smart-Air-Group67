@@ -29,23 +29,18 @@ import java.util.Map;
 
 public class ParentBadgeSettingsActivity extends AppCompatActivity {
 
-    // UI
     private Spinner spinnerChildren;
     private Button backButton;
     private EditText editTechniqueSessions;
     private EditText editLowRescueDays;
     private Button buttonSaveBadgeSettings;
-
-    // Firebase
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-
-    // Spinner data
     private ArrayAdapter<String> childrenAdapter;
     private final List<String> childNames = new ArrayList<>();
-    private final List<String> childIds = new ArrayList<>();
+    private final List<String> childIDs = new ArrayList<>();
 
-    private String selectedChildId = null;
+    private String selectedChildID = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,36 +50,18 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Views
         spinnerChildren = findViewById(R.id.spinnerChildren);
         backButton = findViewById(R.id.backButton);
         editTechniqueSessions = findViewById(R.id.editTechniqueSessions);
         editLowRescueDays = findViewById(R.id.editLowRescueDays);
         buttonSaveBadgeSettings = findViewById(R.id.buttonSaveBadgeSettings);
 
-        setupBackButton();
-        setupChildrenSpinner();
-        setupSaveButton();
-
-        loadChildrenForParent();
-    }
-
-    // ------------------------------
-    // UI Setup
-    // ------------------------------
-
-    private void setupBackButton() {
         backButton.setOnClickListener(view -> {
-            Intent intent = new Intent(
-                    ParentBadgeSettingsActivity.this,
-                    ParentHomeActivity.class
-            );
+            Intent intent = new Intent(ParentBadgeSettingsActivity.this, ParentHomeActivity.class);
             startActivity(intent);
             finish();
         });
-    }
 
-    private void setupChildrenSpinner() {
         childrenAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_spinner_item,
@@ -98,31 +75,26 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
             public void onItemSelected(
                     AdapterView<?> parentView,
                     View view,
-                    int position,
+                    int index,
                     long id
             ) {
-                if (position >= 0 && position < childIds.size()) {
-                    selectedChildId = childIds.get(position);
-                    loadBadgeSettingsForChild(selectedChildId);
+                if((index >= 0 )&& (index < childIDs.size())){
+                    selectedChildID = childIDs.get(index);
+                    loadBadgeSettings(selectedChildID);
                 }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
-                selectedChildId = null;
+                selectedChildID = null;
             }
         });
+        buttonSaveBadgeSettings.setOnClickListener(view -> saveBadges());
+
+        loadChildren();
     }
 
-    private void setupSaveButton() {
-        buttonSaveBadgeSettings.setOnClickListener(view -> saveBadgeSettingsForSelectedChild());
-    }
-
-    // ------------------------------
-    // Firestore: Load children for this parent
-    // ------------------------------
-
-    private void loadChildrenForParent() {
+    private void loadChildren() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "You must be signed in as a parent.", Toast.LENGTH_SHORT).show();
@@ -139,7 +111,7 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
         childrenRef.get()
                 .addOnSuccessListener(querySnapshot -> {
                     childNames.clear();
-                    childIds.clear();
+                    childIDs.clear();
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         String name = doc.getString("name");
@@ -147,23 +119,24 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
                             name = "(Unnamed child)";
                         }
                         childNames.add(name);
-                        childIds.add(doc.getId());
+                        childIDs.add(doc.getId());
                     }
 
                     childrenAdapter.notifyDataSetChanged();
 
-                    if (childIds.isEmpty()) {
+                    if (childIDs.isEmpty()) {
                         spinnerChildren.setEnabled(false);
                         Toast.makeText(
                                 ParentBadgeSettingsActivity.this,
                                 "No children found for this parent.",
                                 Toast.LENGTH_SHORT
                         ).show();
-                    } else {
+                    }
+                    else {
                         spinnerChildren.setEnabled(true);
-                        selectedChildId = childIds.get(0);
+                        selectedChildID = childIDs.get(0);
                         spinnerChildren.setSelection(0);
-                        loadBadgeSettingsForChild(selectedChildId);
+                        loadBadgeSettings(selectedChildID);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -176,12 +149,8 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
                 });
     }
 
-    // ------------------------------
-    // Firestore: Badge settings per child
-    // ------------------------------
-
-    private void loadBadgeSettingsForChild(String childId) {
-        if (TextUtils.isEmpty(childId)) {
+    private void loadBadgeSettings(String childID) {
+        if (TextUtils.isEmpty(childID)) {
             return;
         }
 
@@ -196,7 +165,7 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
         CollectionReference badgesRef = db.collection("users")
                 .document(parentUid)
                 .collection("children")
-                .document(childId)
+                .document(childID)
                 .collection("badges");
 
         badgesRef.get().addOnCompleteListener(task -> {
@@ -209,11 +178,11 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
                 return;
             }
 
-            int techniqueTarget = 10;      // default
-            int lowRescueThreshold = 4;    // default
+            int techniqueTarget = 10;
+            int lowRescueTarget = 4;
 
             for (DocumentSnapshot doc : task.getResult()) {
-                String badgeId = doc.getId();
+                String badgeID = doc.getId();
                 Long targetLong = doc.getLong("target");
 
                 if (targetLong == null) {
@@ -222,24 +191,20 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
 
                 int target = targetLong.intValue();
 
-                if ("technique_sessions".equals(badgeId)) {
+                if ("technique_sessions".equals(badgeID)) {
                     techniqueTarget = target;
-                } else if ("low_rescue_month".equals(badgeId)) {
-                    lowRescueThreshold = target;
+                }
+                else if ("low_rescue_month".equals(badgeID)) {
+                    lowRescueTarget = target;
                 }
             }
 
             editTechniqueSessions.setText(String.valueOf(techniqueTarget));
-            editLowRescueDays.setText(String.valueOf(lowRescueThreshold));
+            editLowRescueDays.setText(String.valueOf(lowRescueTarget));
         });
     }
 
-    private void saveBadgeSettingsForSelectedChild() {
-        if (TextUtils.isEmpty(selectedChildId)) {
-            Toast.makeText(this, "Please select a child.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
+    private void saveBadges() {
         String techniqueText = editTechniqueSessions.getText().toString().trim();
         String lowRescueText = editLowRescueDays.getText().toString().trim();
 
@@ -253,20 +218,21 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
         }
 
         int techniqueTarget;
-        int lowRescueThreshold;
+        int lowRescueTarget;
 
         try {
             techniqueTarget = Integer.parseInt(techniqueText);
-            lowRescueThreshold = Integer.parseInt(lowRescueText);
-        } catch (NumberFormatException e) {
+            lowRescueTarget = Integer.parseInt(lowRescueText);
+        }
+        catch (NumberFormatException e) {
             Toast.makeText(this, "Please enter valid numbers.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (techniqueTarget <= 0 || lowRescueThreshold < 0) {
+        if ((techniqueTarget<= 0) || (lowRescueTarget < 0)) {
             Toast.makeText(
                     this,
-                    "Values must be positive (rescue threshold can be 0 or more).",
+                    "Values must be bigger than 0",
                     Toast.LENGTH_SHORT
             ).show();
             return;
@@ -280,32 +246,29 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
 
         String parentUid = currentUser.getUid();
 
-        CollectionReference badgesRef = db.collection("users")
+        CollectionReference badgesData = db.collection("users")
                 .document(parentUid)
                 .collection("children")
-                .document(selectedChildId)
+                .document(selectedChildID)
                 .collection("badges");
 
         Map<String, Object> techniqueData = new HashMap<>();
-        techniqueData.put("target", techniqueTarget);
-
         Map<String, Object> lowRescueData = new HashMap<>();
-        lowRescueData.put("target", lowRescueThreshold);
 
-        // Save both documents; show a single toast based on low_rescue_month write
-        badgesRef.document("technique_sessions").set(techniqueData);
-        badgesRef.document("low_rescue_month").set(lowRescueData)
+        techniqueData.put("target", techniqueTarget);
+        lowRescueData.put("target", lowRescueTarget);
+
+        badgesData.document("technique_sessions").set(techniqueData);
+        badgesData.document("low_rescue_month").set(lowRescueData)
                 .addOnSuccessListener(unused -> Toast.makeText(
                                 ParentBadgeSettingsActivity.this,
                                 "Badge goals saved for this child.",
-                                Toast.LENGTH_SHORT
-                        ).show()
+                                Toast.LENGTH_SHORT).show()
                 )
                 .addOnFailureListener(e -> Toast.makeText(
                                 ParentBadgeSettingsActivity.this,
                                 "Failed to save badge goals.",
-                                Toast.LENGTH_SHORT
-                        ).show()
+                                Toast.LENGTH_SHORT).show()
                 );
     }
 }

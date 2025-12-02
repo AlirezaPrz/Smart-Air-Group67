@@ -33,7 +33,7 @@ public class AlertHelper {
         } else if ("RED_ZONE".equals(type)) {
             title = "Red-zone day";
         } else if ("RESCUE_REPEATED".equals(type)) {
-            title = "Frequent rescue use";
+            title = "Frequent rescue use - Check on your child";
         } else if ("INVENTORY_LOW".equals(type)) {
             title = "Medication inventory low";
         } else if ("WORSE_AFTER_DOSE".equals(type)) {
@@ -89,6 +89,5 @@ public class AlertHelper {
         );
 
     }
-
 
 }

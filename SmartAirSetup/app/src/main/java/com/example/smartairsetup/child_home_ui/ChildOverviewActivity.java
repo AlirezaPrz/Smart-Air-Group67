@@ -45,8 +45,6 @@ public class ChildOverviewActivity extends AbstractNavigation {
     private String parentUid;
     private String selectedChildId;
     private String selectedChildName;
-    private Button buttonLogControllerDoseNow;
-    private MedicationLogRepository medicationLogRepository;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

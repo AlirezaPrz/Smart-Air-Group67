@@ -26,8 +26,7 @@ import com.example.smartairsetup.pdf.PDFStoreActivity;
 import com.example.smartairsetup.pef.PEFActivity;
 import com.example.smartairsetup.triage.RedFlagsActivity;
 import com.example.smartairsetup.zone.ZoneActivity;
-import com.example.smartairsetup.notification.NotificationReceiver;
-import com.example.smartairsetup.notification.NotificationPermissionsHelper;
+import com.example.smartairsetup.notification.AlertHelper;
 
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -200,8 +199,6 @@ public class ParentHomeActivity extends AbstractNavigation {
         buttonOverviewSelectChild.setOnClickListener(v -> showOverviewChildDialog());
 
         loadChildren();
-
-        getDeviceTokenForNotif();
 
     }
 
@@ -488,39 +485,12 @@ public class ParentHomeActivity extends AbstractNavigation {
     }
 
     private void showAlertNotification(String type, String message) {
+
         if (!NotificationPermissionsHelper.ensureNotificationPermissions(this)) {
             return;
         }
-
-        String title;
-        if ("TRIAGE_START".equals(type)) {
-            title = "Triage started";
-        } else if ("TRIAGE_ESCALATION".equals(type)) {
-            title = "Triage escalation";
-        } else if ("RED_ZONE".equals(type)) {
-            title = "Red-zone day";
-        } else if ("RESCUE_REPEATED".equals(type)) {
-            title = "Frequent rescue use";
-        } else if ("INVENTORY_LOW".equals(type)) {
-            title = "Medication inventory low";
-        } else if ("WORSE_AFTER_DOSE".equals(type)) {
-            title = "Symptoms worse after dose";
-        } else {
-            title = "SmartAir alert";
-        }
-
-        Intent intent = new Intent(this, NotificationReceiver.class);
-        intent.putExtra(NotificationReceiver.EXTRA_TITLE, title);
-        intent.putExtra(NotificationReceiver.EXTRA_MESSAGE, message);
-        intent.putExtra(
-                NotificationReceiver.EXTRA_ID,
-                (int) System.currentTimeMillis()
-        );
-
-        sendBroadcast(intent);
+        AlertHelper.showAlert(this, type, message);
     }
-
-    // ---------------- Existing navigation helpers ----------------
 
     private void launchDailyCheckIn(String childId, String childName) {
         Intent intent = new Intent(ParentHomeActivity.this, DailyCheckIn.class);
@@ -557,21 +527,6 @@ public class ParentHomeActivity extends AbstractNavigation {
     @Override
     protected void onSettingsClicked() {
         startActivity(new Intent(ParentHomeActivity.this, ParentSettingsActivity.class));
-    }
-
-    private void getDeviceTokenForNotif(){
-        FirebaseMessaging.getInstance().getToken()
-                .addOnSuccessListener(token -> {
-                    String parentUid = FirebaseAuth.getInstance().getUid();
-
-                    FirebaseFirestore.getInstance()
-                            .collection("users")
-                            .document(parentUid)
-                            .collection("device_tokens")
-                            .document(token)
-                            .set(Collections.singletonMap("token", token));
-                });
-
     }
 
 

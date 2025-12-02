@@ -99,8 +99,7 @@ public class ChildHomeActivity extends AbstractNavigation {
         loadChild();
         setButtons();
 
-        ImageButton notificationButton = findViewById(R.id.notificationButton);
-        notificationButton.setOnClickListener(v -> sendSimpleAlertToParent());
+
     }
 
     @Override
@@ -199,21 +198,16 @@ public class ChildHomeActivity extends AbstractNavigation {
             startActivity(zoneIntent);
         });
 
-        // Alert button (bell icon at top-right)
         ImageButton alertButton = findViewById(R.id.notificationButton);
-        alertButton.setOnClickListener(v -> {
-            if (childId == null || childId.isEmpty()) {
-                Toast.makeText(
-                        ChildHomeActivity.this,
-                        "Please add a child first.",
-                        Toast.LENGTH_SHORT
-                ).show();
-                return;
-            }
-
-            // For now I just send a simple alert notification.
-            // Ben can later make this include child name, triage info, etc.
-            sendTriageAlertToParent();
+        alertButton.setOnClickListener(v ->{
+        if (childId == null || childId.isEmpty()) {
+            Toast.makeText(
+                    ChildHomeActivity.this,
+                    "Please add a child first.",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
+                sendSimpleAlertToParent();
         });
 
     }
@@ -247,7 +241,8 @@ public class ChildHomeActivity extends AbstractNavigation {
                 e -> Toast.makeText(this, "Failed to send alert: " + e.getMessage(), Toast.LENGTH_LONG).show()
         );
 
-        // 2) Optional – local notification so you can see something even on one device
+        /*
+        //sends a local notification you can see - useful for testing solo
         if (!NotificationPermissionsHelper.ensureNotificationPermissions(this)) {
             return;
         }
@@ -257,26 +252,8 @@ public class ChildHomeActivity extends AbstractNavigation {
         intent.putExtra(NotificationReceiver.EXTRA_MESSAGE, message);
         intent.putExtra(NotificationReceiver.EXTRA_ID, (int) System.currentTimeMillis());
         sendBroadcast(intent);
-    }
 
-    private void sendTriageAlertToParent() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        Map<String, Object> alert = new HashMap<>();
-        alert.put("title", "Triage Alert");
-        alert.put("message", "Your child has requested help. Open Smart Air for details.");
-        alert.put("timestamp", FieldValue.serverTimestamp());
-
-        db.collection("alerts")
-                .document(parentUid)
-                .collection("pending")
-                .add(alert)
-                .addOnSuccessListener(doc -> {
-                    Toast.makeText(this, "Alert sent to parent", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to send alert: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+         */
     }
 
     private void setGreeting(String name) {

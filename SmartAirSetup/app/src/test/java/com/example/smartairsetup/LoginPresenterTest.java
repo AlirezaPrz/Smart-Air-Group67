@@ -31,13 +31,13 @@ public class LoginPresenterTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         presenter = new LoginPresenter(mockView, mockModel, mockEmailValidator);
     }
 
     @Test
-    public void handleSignIn_emptyIdentifier() {
-        presenter.handleSignIn("", "password");
+    public void handleSignIn_emptyIdentifier_showsError() {
+        presenter.handleSignIn("", "StrongP@ss1");
 
         verify(mockView).clearError();
         verify(mockView).showError("Email or username is required");
@@ -57,7 +57,7 @@ public class LoginPresenterTest {
     public void handleSignIn_invalidEmail() {
         when(mockEmailValidator.isValid("bad@email")).thenReturn(false);
 
-        presenter.handleSignIn("bad@email", "password");
+        presenter.handleSignIn("invalid@email", "StrongP@ss1");
 
         verify(mockView).clearError();
         verify(mockView).enableSignInButton(false);
@@ -71,11 +71,11 @@ public class LoginPresenterTest {
         ArgumentCaptor<LoginModel.SignInCallback> captor =
                 ArgumentCaptor.forClass(LoginModel.SignInCallback.class);
 
-        presenter.handleSignIn("parent@email.com", "password");
+        presenter.handleSignIn("parent@email.com", "StrongP@ss1");
 
         verify(mockView).clearError();
         verify(mockView).enableSignInButton(false);
-        verify(mockModel).signInParentOrProvider(eq("parent@email.com"), eq("password"), captor.capture());
+        verify(mockModel).signInParentOrProvider(eq("parent@email.com"), eq("StrongP@ss1"), captor.capture());
 
 
         captor.getValue().onSuccess("uid123", "roleParent");
@@ -122,11 +122,11 @@ public class LoginPresenterTest {
         ArgumentCaptor<LoginModel.ChildSignInCallback> captor =
                 ArgumentCaptor.forClass(LoginModel.ChildSignInCallback.class);
 
-        presenter.handleSignIn("childUser", "password");
+        presenter.handleSignIn("childUser", "StrongP@ss1");
 
         verify(mockView).clearError();
         verify(mockView).enableSignInButton(false);
-        verify(mockModel).signInChild(eq("childUser"), eq("password"), captor.capture());
+        verify(mockModel).signInChild(eq("childUser"), eq("StrongP@ss1"), captor.capture());
 
         // firstTime = false
         captor.getValue().onSuccess("parentUid123", "childDoc456", false);
@@ -199,6 +199,17 @@ public class LoginPresenterTest {
 
         successCaptor.getValue().run();
         verify(mockView).showToast("Password reset email sent. Check your inbox.");
+    }
+
+    @Test
+    public void handleSignIn_weakPassword_showsError() {
+        presenter.handleSignIn("user@example.com", "weak");
+
+        verify(mockView).clearError();
+        verify(mockView).showError("Password must be at least 8 characters, include a number, uppercase letter, and special character.");
+        verify(mockView, never()).enableSignInButton(anyBoolean());
+        verify(mockModel, never()).signInParentOrProvider(anyString(), anyString(), any());
+        verify(mockModel, never()).signInChild(anyString(), anyString(), any());
     }
 
     @Test

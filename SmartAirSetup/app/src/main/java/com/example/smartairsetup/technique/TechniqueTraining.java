@@ -64,7 +64,7 @@ public class TechniqueTraining extends AppCompatActivity {
         }
 
         Intent intent = getIntent();
-        childId = getIntent().getStringExtra("CHILD_ID");
+        childId = intent.getStringExtra("CHILD_ID");
 
         setIds();
         setVideoButton();
@@ -204,7 +204,7 @@ public class TechniqueTraining extends AppCompatActivity {
                     startGoodTimer();
 
                 }else{
-                    if(goodZone == false){
+                    if(!goodZone){
                         techniqueScore--; //this means user didn't continue in the 30 - 60 second window
                     }
                     continueMode = false;

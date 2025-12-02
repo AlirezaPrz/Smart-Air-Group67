@@ -48,18 +48,10 @@ public class ParentFamilyActivity extends AbstractNavigation {
         familyListContainer = findViewById(R.id.familyListContainer);
         addMemberButton = findViewById(R.id.addMemberButton);
 
-        if (addMemberButton == null) {
-            Log.e(TAG, "addMemberButton is NULL! Check activity_parent_family.xml layout.");
-        } else {
-            Log.d(TAG, "addMemberButton found, setting click listener.");
-
-            addMemberButton.setOnClickListener(view -> {
-                Log.d(TAG, "Add Member button clicked!");
-                Intent intent = new Intent(ParentFamilyActivity.this, AddChildActivity.class);
-                startActivity(intent);
-                Log.d(TAG, "Intent to AddChildActivity started.");
-            });
-        }
+        addMemberButton.setOnClickListener(view -> {
+            Intent intent = new Intent(ParentFamilyActivity.this, AddChildActivity.class);
+            startActivity(intent);
+        });
 
         loadChildrenFromFirestore();
     }
@@ -166,7 +158,7 @@ public class ParentFamilyActivity extends AbstractNavigation {
         currentConfirmationView = confirmLayout;
 
         goButton.setOnClickListener(view -> {
-            Log.d(TAG, "Go to child page clicked: " + name);
+            Log.d(TAG, "child page clicked" + name);
 
             String parentUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
             if (parentUid == null) {
@@ -210,7 +202,7 @@ public class ParentFamilyActivity extends AbstractNavigation {
                                 startActivity(childIntent);
                             }
                         } else {
-                            Log.e(TAG, "No matching child found in childAccounts");
+                            Log.e(TAG, "No matching child in childAccounts");
                             // Fallback to ChildHomeActivity
                             Intent childIntent = new Intent(ParentFamilyActivity.this, ChildHomeActivity.class);
                             childIntent.putExtra("CHILD_ID", childId);
@@ -219,7 +211,6 @@ public class ParentFamilyActivity extends AbstractNavigation {
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to query childAccounts", e);
                         Toast.makeText(this, "Error checking child account.", Toast.LENGTH_SHORT).show();
                     });
         });

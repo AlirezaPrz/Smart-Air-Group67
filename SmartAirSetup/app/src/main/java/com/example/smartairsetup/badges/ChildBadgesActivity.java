@@ -17,18 +17,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 public class ChildBadgesActivity extends AppCompatActivity {
-
     private ImageView imageBadgePerfectWeek;
     private ImageView imageBadgeTechnique;
     private ImageView imageBadgeLowRescueMonth;
     private TextView textBadgeTechniqueDesc;
-
     private FirebaseFirestore db;
-
-    // Intent keys
     public static final String EXTRA_PARENT_ID = "EXTRA_PARENT_ID";
     public static final String EXTRA_CHILD_ID = "EXTRA_CHILD_ID";
-
     private String parentUid;
     private String childId;
 
@@ -37,50 +32,43 @@ public class ChildBadgesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_child_badge);
 
-        // Firebase
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Bind views
-        // UI
-        TextView textBackBadges = findViewById(R.id.textBackBadges);
         imageBadgePerfectWeek = findViewById(R.id.imageBadgePerfectWeek);
         imageBadgeTechnique = findViewById(R.id.imageBadgeTechnique);
         imageBadgeLowRescueMonth = findViewById(R.id.imageBadgeLowRescueMonth);
         textBadgeTechniqueDesc = findViewById(R.id.textBadgeTechniqueDesc);
 
+        TextView textBackBadges = findViewById(R.id.textBackBadges);
         textBackBadges.setOnClickListener(view -> finish());
 
-        // Parent UID: by default, the FirebaseAuth current user
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             parentUid = currentUser.getUid();
-        } else {
+        }
+        else {
             parentUid = getIntent().getStringExtra(EXTRA_PARENT_ID);
         }
 
-        // Child ID: first try EXTRA_CHILD_ID, then fallback to "CHILD_ID"
         childId = getIntent().getStringExtra(EXTRA_CHILD_ID);
-        if (childId == null || childId.isEmpty()) {
+        if (childId == null || childId.isEmpty() ) {
             childId = getIntent().getStringExtra("CHILD_ID");
         }
-
         if (parentUid == null || childId == null || childId.isEmpty()) {
-            Toast.makeText(this, "Missing parent or child id for badges.", Toast.LENGTH_SHORT).show();
-            updateBadgesUI(false, false, false);
+            Toast.makeText(this, "Problem with parent or child id", Toast.LENGTH_SHORT).show();
+            updateBadges(false, false, false);
             return;
         }
-
-        loadBadgeStatusAndUpdateUI();
+        loadBadges();
     }
 
-    private void loadBadgeStatusAndUpdateUI() {
+    private void loadBadges() {
         if (parentUid == null || childId == null) {
-            updateBadgesUI(false, false, false);
+            updateBadges(false, false, false);
             return;
         }
 
-        // Default description in case Firestore does not have target field yet
         textBadgeTechniqueDesc.setText("Use perfect inhaler technique 10 times.");
 
         CollectionReference badgesRef = db.collection("users")
@@ -90,14 +78,13 @@ public class ChildBadgesActivity extends AppCompatActivity {
                 .collection("badges");
 
         badgesRef.get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
-                updateBadgesUI(false, false, false);
+            if(task.isSuccessful()== false){
+                updateBadges(false, false, false);
                 return;
             }
-
-            boolean hasPerfectWeek = false;
-            boolean hasTechnique = false;
-            boolean hasLowRescueMonth = false;
+            boolean PerfectWeek = false;
+            boolean Technique = false;
+            boolean LowRescueMonth = false;
 
             QuerySnapshot snapshot = task.getResult();
             if (snapshot != null) {
@@ -108,7 +95,6 @@ public class ChildBadgesActivity extends AppCompatActivity {
                     Long targetLong = doc.getLong("target");
                     Long progressLong = doc.getLong("progress");
 
-                    // Technique sessions badge: update description text dynamically
                     if ("technique_sessions".equals(badgeId)) {
                         if (targetLong != null) {
                             int target = targetLong.intValue();
@@ -124,14 +110,12 @@ public class ChildBadgesActivity extends AppCompatActivity {
                         }
 
                         if (earned) {
-                            hasTechnique = true;
+                            Technique = true;
                         }
 
-                        // continue so we do not process this doc again below
                         continue;
                     }
 
-                    // Other badges (perfect week, low rescue month)
                     boolean earned = false;
                     if (earnedFlag != null && earnedFlag) {
                         earned = true;
@@ -144,45 +128,53 @@ public class ChildBadgesActivity extends AppCompatActivity {
                     }
 
                     if ("perfect_controller_week".equals(badgeId)) {
-                        hasPerfectWeek = true;
+                        PerfectWeek = true;
                     } else if ("low_rescue_month".equals(badgeId)) {
-                        hasLowRescueMonth = true;
+                        LowRescueMonth = true;
                     }
                 }
             }
 
-            updateBadgesUI(hasPerfectWeek, hasTechnique, hasLowRescueMonth);
+            updateBadges(PerfectWeek, Technique, LowRescueMonth);
         });
     }
 
-    private void updateBadgesUI(boolean hasPerfectWeek,
-                                boolean hasTechnique,
-                                boolean hasLowRescueMonth) {
+    private void Badge(){
 
-        int tintColorResId = R.color.button_icon_color;
+    }
 
-        if (hasPerfectWeek) {
+    private void updateBadges(boolean PerfectWeek,
+                              boolean Technique,
+                              boolean LowRescueMonth) {
+
+        int greenColor = R.color.button_icon_color;
+
+        if(PerfectWeek == true){
             imageBadgePerfectWeek.setImageTintList(
-                    ContextCompat.getColorStateList(this, tintColorResId)
+                    ContextCompat.getColorStateList(this, greenColor)
             );
-        } else {
+        }
+        else{
             imageBadgePerfectWeek.setImageTintList(null);
         }
 
-        if (hasTechnique) {
+        if(Technique == true){
             imageBadgeTechnique.setImageTintList(
-                    ContextCompat.getColorStateList(this, tintColorResId)
+                    ContextCompat.getColorStateList(this, greenColor)
             );
-        } else {
+        }
+        else{
             imageBadgeTechnique.setImageTintList(null);
         }
 
-        if (hasLowRescueMonth) {
+        if(LowRescueMonth == true){
             imageBadgeLowRescueMonth.setImageTintList(
-                    ContextCompat.getColorStateList(this, tintColorResId)
+                    ContextCompat.getColorStateList(this, greenColor)
             );
-        } else {
+        }
+        else{
             imageBadgeLowRescueMonth.setImageTintList(null);
         }
     }
+
 }

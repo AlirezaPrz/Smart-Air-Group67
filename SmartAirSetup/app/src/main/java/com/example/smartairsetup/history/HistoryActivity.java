@@ -55,7 +55,7 @@ public class HistoryActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        spinnerChild = findViewById(R.id.spinnerChildFilter);
+        spinnerChild = findViewById(R.id.spinnerChilds);
         loadChildrenForFilter();
 
         editStartDate = findViewById(R.id.editStartDate);
@@ -96,7 +96,7 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void exportCSV() {
         if (historyItems.isEmpty()) {
-            Toast.makeText(this, "No history to export.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "History could not finded", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -104,24 +104,16 @@ public class HistoryActivity extends AppCompatActivity {
         sb.append("Child, Date, Night waking, Activity limits, Cough/wheeze, Triggers, Author\n");
 
         for (HistoryEntry entry : historyItems) {
-            String child = escapeCsv(entry.childName);
-            String date = escapeCsv(entry.date);
-            String night = escapeCsv(entry.night);
-            String activity = escapeCsv(entry.activity);
-            String cough = escapeCsv(entry.cough);
-            String triggers = escapeCsv(entry.triggers);
-            String author = escapeCsv(entry.author);
-
-            sb.append(child).append(", ");
-            sb.append(date).append(", ");
-            sb.append(night).append(", ");
-            sb.append(activity).append(", ");
-            sb.append(cough).append(", ");
-            sb.append(triggers).append(", ");
-            sb.append(author).append("\n");
+            sb.append(entry.childName).append(", ");
+            sb.append(entry.date).append(", ");
+            sb.append(entry.night).append(", ");
+            sb.append(entry.activity).append(", ");
+            sb.append(entry.cough).append(", ");
+            sb.append(entry.triggers).append(", ");
+            sb.append(entry.author).append("\n");
         }
 
-        String fileName = "history_" + System.currentTimeMillis() + ".csv";
+        String fileName = "history.csv";
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
@@ -134,47 +126,28 @@ public class HistoryActivity extends AppCompatActivity {
         );
 
         if (uri == null) {
-            Toast.makeText(this, "Could not create file in Downloads.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Could not create file in Downloads", Toast.LENGTH_LONG).show();
             return;
         }
 
         try (OutputStream os = getContentResolver().openOutputStream(uri)) {
             if (os == null) {
-                Toast.makeText(this, "Failed to open file output stream.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Failed to open file", Toast.LENGTH_LONG).show();
                 return;
             }
             os.write(sb.toString().getBytes(StandardCharsets.UTF_8));
             os.flush();
 
-            Toast.makeText(
-                    this,
-                    "CSV saved to Downloads as:\n" + fileName,
-                    Toast.LENGTH_LONG
-            ).show();
-
-        } catch (Exception e) {
-            Toast.makeText(this, "Failed to export: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "CSV saved to Downloads", Toast.LENGTH_LONG).show();
         }
-    }
-
-    private String escapeCsv(String value) {
-        if (value == null) return "";
-
-        boolean hasComma = value.contains(",");
-        boolean hasQuote = value.contains("\"");
-        boolean hasNewLine = value.contains("\n") || value.contains("\r");
-
-        if (hasQuote) value = value.replace("\"", "\"\"");
-
-        if (hasComma || hasQuote || hasNewLine) {
-            return "\"" + value + "\"";
+        catch (Exception e) {
+            Toast.makeText(this, "Failed to export:" + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-        return value;
     }
 
     private void loadHistory() {
         if (mAuth.getCurrentUser() == null) {
-            Toast.makeText(this, "You must be logged in.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You must be logged in", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -218,7 +191,6 @@ public class HistoryActivity extends AppCompatActivity {
                 String night = doc.getString("nightWaking");
                 String activity = doc.getString("activityLimits");
                 String cough = doc.getString("coughWheeze");
-                @SuppressWarnings("unchecked")
                 List<String> triggers = (List<String>) doc.get("triggers");
                 String authorLabel = doc.getString("authorLabel");
                 String docChildName = doc.getString("childName");

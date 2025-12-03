@@ -62,7 +62,7 @@ public class ControllerLogActivity extends AppCompatActivity {
         TextView title = findViewById(R.id.textControllerLogTitle);
         title.setText("Medication Logs");
 
-        spinnerChildFilter = findViewById(R.id.spinnerChilds);
+        spinnerChildFilter = findViewById(R.id.spinnerChildFilter);
         spinnerMedTypeFilter = findViewById(R.id.spinnerTriggerFilter);
         editStartDate = findViewById(R.id.editStartDate);
         editEndDate = findViewById(R.id.editEndDate);

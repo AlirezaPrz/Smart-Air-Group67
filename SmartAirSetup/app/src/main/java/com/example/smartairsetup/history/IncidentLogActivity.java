@@ -32,7 +32,7 @@ public class IncidentLogActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
-    private Spinner spinnerChilds;
+    private Spinner spinnerChildFilter;
     private ListView listHistory;
 
     private final List<String> childNames = new ArrayList<>();
@@ -42,7 +42,8 @@ public class IncidentLogActivity extends AppCompatActivity {
     private final List<String> incidentItems = new ArrayList<>();
     private ArrayAdapter<String> historyAdapter;
 
-    private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.US);
+    private final SimpleDateFormat dateTimeFormat =
+            new SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.US);
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -58,23 +59,32 @@ public class IncidentLogActivity extends AppCompatActivity {
             return;
         }
 
-        spinnerChilds = findViewById(R.id.spinnerChilds);
+        spinnerChildFilter = findViewById(R.id.spinnerChildFilter);
         Button buttonGetLogs = findViewById(R.id.buttonGetLogs);
         Button buttonBack = findViewById(R.id.buttonBack);
         findViewById(R.id.textSymptomSummary);
         listHistory = findViewById(R.id.listHistory);
 
-        //child spnnier
+        setupChildSpinner();
+        setupHistoryList();
+
+        buttonGetLogs.setOnClickListener(v -> loadIncidentLogsForSelectedChild());
+
+        buttonBack.setOnClickListener(v -> finish());
+    }
+
+    private void setupChildSpinner() {
         childAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_spinner_item,
                 childNames
         );
         childAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerChilds.setAdapter(childAdapter);
-        loadChildren();
+        spinnerChildFilter.setAdapter(childAdapter);
 
-        //setup history
+        loadChildrenForCurrentParent();
+    }
+    private void setupHistoryList() {
         historyAdapter = new ArrayAdapter<>(
                 this,
                 R.layout.item_incident_log,
@@ -82,12 +92,10 @@ public class IncidentLogActivity extends AppCompatActivity {
                 incidentItems
         );
         listHistory.setAdapter(historyAdapter);
-        buttonGetLogs.setOnClickListener(v -> loadIncidentLogs());
-
-        buttonBack.setOnClickListener(v -> finish());
     }
 
-    private void loadChildren() {
+
+    private void loadChildrenForCurrentParent() {
         assert mAuth.getCurrentUser() != null;
         String parentUid = mAuth.getCurrentUser().getUid();
 
@@ -101,14 +109,18 @@ public class IncidentLogActivity extends AppCompatActivity {
 
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                         String childName = doc.getString("name");
-                        childNames.add(childName);
-
                         String childId = doc.getId();
+
+                        childNames.add(childName);
                         childIds.add(childId);
                     }
 
                     if (childNames.isEmpty()) {
-                        Toast.makeText(IncidentLogActivity.this, "No children found", Toast.LENGTH_LONG).show();
+                        Toast.makeText(
+                                IncidentLogActivity.this,
+                                "No children found",
+                                Toast.LENGTH_LONG
+                        ).show();
                     }
 
                     childAdapter.notifyDataSetChanged();
@@ -120,8 +132,8 @@ public class IncidentLogActivity extends AppCompatActivity {
                 ).show());
     }
 
-    private void loadIncidentLogs() {
-        int selected = spinnerChilds.getSelectedItemPosition();
+    private void loadIncidentLogsForSelectedChild() {
+        int selected = spinnerChildFilter.getSelectedItemPosition();
         if (selected < 0 || selected >= childIds.size()) {
             Toast.makeText(this, "Please select a child.", Toast.LENGTH_SHORT).show();
             return;
@@ -147,6 +159,7 @@ public class IncidentLogActivity extends AppCompatActivity {
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         Long timestamp = doc.getLong("timestamp");
+                        if (timestamp == null) continue;
 
                         String zone = doc.getString("zone");
                         Boolean blueLipsNails = doc.getBoolean("blueLipsNails");
@@ -167,12 +180,13 @@ public class IncidentLogActivity extends AppCompatActivity {
                             row.append("\nFlags: ").append(TextUtils.join(", ", flags));
                         }
 
-                        if((userResponse != null) && !userResponse.trim().isEmpty()) {
+                        if (userResponse != null && !userResponse.trim().isEmpty()) {
                             row.append("\nUser response: ").append(userResponse);
                         }
 
+                        // ✅ Safe Long handling (no unboxing warning, no NPE)
                         Long pefLong = doc.getLong("dailyPEF");
-                        if (pefLong != null){
+                        if (pefLong != null) {
                             row.append("\nOptional PEF: ").append(pefLong);
                         }
 

@@ -390,34 +390,43 @@ public class PDFGenerator {
         if (shareSummaryCharts) {
             document.newPage();
         }
-
         // Time-series chart
         document.add(new Paragraph("8. Time-series chart (PEF over time)", font));
         if (sharePEF && pefValues != null && !pefValues.isEmpty()) {
             PdfContentByte chartCanvas = writer.getDirectContent();
 
+            // Chart area (just under the title on this page)
             float chartLeft = 60f;
             float chartWidth = 400f;
             float chartHeight = 180f;
 
-            float topY = writer.getVerticalPosition(true) - 20f;
+            // Place the chart right below the current text position
+            float topY = writer.getVerticalPosition(true) - 20f; // small padding under the title
             float chartBottom = topY - chartHeight;
 
+            // Safety: do not go too close to the bottom margin
+            if (chartBottom < 60f) {
+                chartBottom = 60f;
+            }
+
+            // ----- Grid background -----
             chartCanvas.saveState();
             chartCanvas.setLineWidth(0.2f);
-            chartCanvas.setColorStroke(new BaseColor(220, 220, 220));
+            chartCanvas.setColorStroke(new BaseColor(220, 220, 220)); // light gray
 
             int gridRows = 6;
             int gridCols = 8;
             float rowHeight = chartHeight / (float) gridRows;
             float colWidth = chartWidth / (float) gridCols;
 
+            // Horizontal grid lines
             for (int i = 0; i <= gridRows; i++) {
                 float y = chartBottom + i * rowHeight;
                 chartCanvas.moveTo(chartLeft, y);
                 chartCanvas.lineTo(chartLeft + chartWidth, y);
             }
 
+            // Vertical grid lines
             for (int j = 0; j <= gridCols; j++) {
                 float x = chartLeft + j * colWidth;
                 chartCanvas.moveTo(x, chartBottom);
@@ -427,17 +436,21 @@ public class PDFGenerator {
             chartCanvas.stroke();
             chartCanvas.restoreState();
 
+            // ----- Axes -----
             chartCanvas.setColorStroke(BaseColor.BLACK);
             chartCanvas.setLineWidth(1f);
 
+            // Y axis
             chartCanvas.moveTo(chartLeft, chartBottom);
             chartCanvas.lineTo(chartLeft, chartBottom + chartHeight);
 
+            // X axis
             chartCanvas.moveTo(chartLeft, chartBottom);
             chartCanvas.lineTo(chartLeft + chartWidth, chartBottom);
 
             chartCanvas.stroke();
 
+            // ----- Compute min / max PEF -----
             int minPEF = pefValues.get(0);
             int maxPEF = pefValues.get(0);
             for (int i = 1; i < pefValues.size(); i++) {
@@ -450,7 +463,7 @@ public class PDFGenerator {
                 }
             }
             if (maxPEF == minPEF) {
-                maxPEF = minPEF + 1;
+                maxPEF = minPEF + 1; // avoid division by zero
             }
 
             int n = pefValues.size();
@@ -459,7 +472,8 @@ public class PDFGenerator {
                 xStep = chartWidth / (float) (n - 1);
             }
 
-            BaseColor lineColor = new BaseColor(0, 150, 255);
+            // ----- Draw PEF line -----
+            BaseColor lineColor = new BaseColor(0, 150, 255); // blue-ish
             chartCanvas.setColorStroke(lineColor);
             chartCanvas.setLineWidth(2.5f);
 
@@ -484,6 +498,7 @@ public class PDFGenerator {
             }
             chartCanvas.stroke();
 
+            // ----- Optional: small circles on each point -----
             chartCanvas.setColorFill(lineColor);
             for (int i = 0; i < n; i++) {
                 int value = pefValues.get(i);
@@ -495,13 +510,15 @@ public class PDFGenerator {
                     x = chartLeft + chartWidth / 2f;
                 }
 
-                float y = chartBottom + (value - minPEF) * chartHeight / (float) (maxPEF - minPEF);
+                float y = chartBottom
+                        + (value - minPEF) * chartHeight / (float) (maxPEF - minPEF);
 
                 float r = 2.5f;
                 chartCanvas.circle(x, y, r);
                 chartCanvas.fill();
             }
 
+            // ----- Axis labels (PEF on left, dates on bottom) -----
             try {
                 BaseFont axisFont = BaseFont.createFont(
                         BaseFont.HELVETICA,
@@ -511,7 +528,7 @@ public class PDFGenerator {
                 chartCanvas.beginText();
                 chartCanvas.setFontAndSize(axisFont, 10f);
 
-
+                // Y-axis labels: min, mid, max
                 int midPEF = (minPEF + maxPEF) / 2;
 
                 chartCanvas.showTextAligned(
@@ -536,6 +553,7 @@ public class PDFGenerator {
                         0f
                 );
 
+                // X-axis labels: first, middle, last dates (MM-dd)
                 String firstDate = pefDates.get(0);
                 String lastDate = pefDates.get(pefDates.size() - 1);
                 String firstLabel = firstDate.length() >= 5 ? firstDate.substring(5) : firstDate;
@@ -574,16 +592,16 @@ public class PDFGenerator {
                 chartCanvas.showTextAligned(
                         Element.ALIGN_LEFT,
                         "PEF Values",
-                        chartLeft - 40f,
-                        chartBottom + chartHeight + 10f,
+                        chartLeft - 40f,                  // left side
+                        chartBottom + chartHeight + 10f,  // above top
                         0f
                 );
 
                 chartCanvas.showTextAligned(
                         Element.ALIGN_RIGHT,
                         "Date",
-                        chartLeft + chartWidth,
-                        chartBottom - 28f,
+                        chartLeft + chartWidth,           // right edge of chart
+                        chartBottom - 28f,                // below x-axis labels
                         0f
                 );
                 chartCanvas.endText();

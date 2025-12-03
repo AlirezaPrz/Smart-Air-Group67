@@ -25,19 +25,25 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ParentFamilyActivity extends AbstractNavigation {
+
+    private static final String TAG = "ParentFamilyActivity";
+
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+
     private LinearLayout familyListContainer;
+
     private View currentConfirmationView;
     private View currentSelectedRow;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState); // AbstractNavigation sets the layout
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Find views AFTER setContentView
         familyListContainer = findViewById(R.id.familyListContainer);
         Button addMemberButton = findViewById(R.id.addMemberButton);
 
@@ -61,7 +67,7 @@ public class ParentFamilyActivity extends AbstractNavigation {
     }
 
     private void loadChildrenFromFirestore() {
-        if(mAuth.getCurrentUser()==null) {
+        if (mAuth.getCurrentUser() == null) {
             Toast.makeText(this, "You are not logged in.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -84,6 +90,7 @@ public class ParentFamilyActivity extends AbstractNavigation {
                     }
                 })
                 .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to load children", e);
                     Toast.makeText(this, "Failed to load children.", Toast.LENGTH_SHORT).show();
                 });
     }
@@ -95,11 +102,13 @@ public class ParentFamilyActivity extends AbstractNavigation {
                 false
         );
 
-        TextView nameText=rowView.findViewById(R.id.textName);
-        TextView roleText=rowView.findViewById(R.id.textRole);
+        ImageView avatarImage = rowView.findViewById(R.id.imageAvatar);
+        TextView nameText = rowView.findViewById(R.id.textName);
+        TextView roleText = rowView.findViewById(R.id.textRole);
 
         nameText.setText(name);
         roleText.setText("Child");
+        avatarImage.setImageResource(R.drawable.person);
 
         rowView.setOnClickListener(view -> showConfirmationForChild(childId, name, rowView));
 
@@ -116,25 +125,20 @@ public class ParentFamilyActivity extends AbstractNavigation {
 
         if (currentConfirmationView != null) {
             ViewGroup parent = (ViewGroup) currentConfirmationView.getParent();
-            if (parent != null){
-                parent.removeView(currentConfirmationView);
-            }
+            if (parent != null) parent.removeView(currentConfirmationView);
             currentConfirmationView = null;
         }
 
         LinearLayout confirmLayout = new LinearLayout(this);
         confirmLayout.setOrientation(LinearLayout.VERTICAL);
         confirmLayout.setBackgroundColor(Color.parseColor("#EEF5FF"));
-
-        float density = getResources().getDisplayMetrics().density;
-        int paddingHorizontal = (int)(16*density+0.5f);
-        int paddingVerticalTop = (int)(8*density + 0.5f);
-        int paddingVerticalBottom = (int)(16 * density + 0.5f);
-
+        int paddingHorizontal = dpToPx(16);
+        int paddingVerticalTop = dpToPx(8);
+        int paddingVerticalBottom = dpToPx(16);
         confirmLayout.setPadding(paddingHorizontal, paddingVerticalTop, paddingHorizontal, paddingVerticalBottom);
 
         TextView message = new TextView(this);
-        message.setText("You will be redirected to " + name);
+        message.setText("You will be redirected to " + name + "'s page.");
         message.setTextSize(14);
 
         Button goButton = new Button(this);
@@ -146,28 +150,22 @@ public class ParentFamilyActivity extends AbstractNavigation {
         int rowIndex = familyListContainer.indexOfChild(rowView);
         if (rowIndex == -1) {
             familyListContainer.addView(confirmLayout);
-        }
-        else{
+        } else {
             familyListContainer.addView(confirmLayout, rowIndex + 1);
         }
 
         currentConfirmationView = confirmLayout;
 
         goButton.setOnClickListener(view -> {
-            String parentUid;
+            Log.d(TAG, "child page clicked" + name);
 
-            if (mAuth.getCurrentUser() != null) {
-                parentUid = mAuth.getCurrentUser().getUid();
-            }
-            else {
-                parentUid = null;
-            }
-
+            String parentUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
             if (parentUid == null) {
-                Toast.makeText(this, "Parent UID is not available.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Parent UID not available.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            // Check childAccounts for firstTime
             db.collection("childAccounts")
                     .whereEqualTo("childDocId", childId)
                     .whereEqualTo("parentUid", parentUid)
@@ -175,35 +173,47 @@ public class ParentFamilyActivity extends AbstractNavigation {
                     .addOnSuccessListener(querySnapshot -> {
                         if (!querySnapshot.isEmpty()) {
                             boolean firstTimeFound = false;
-                            for (DocumentSnapshot doc:querySnapshot) {
+                            for (DocumentSnapshot doc : querySnapshot) {
                                 Boolean firstTime = doc.getBoolean("firstTime");
                                 if (firstTime != null && firstTime) {
                                     firstTimeFound = true;
+
+                                    // Update firstTime to false
                                     doc.getReference().update("firstTime", false)
-                                            .addOnFailureListener(e -> Log.e("ParentFamilyActivity", "Failed to update firstTime", e));
-                                    Intent intent = new Intent(ParentFamilyActivity.this, OnboardingActivity.class);
-                                    intent.putExtra("PARENT_UID", parentUid);
-                                    intent.putExtra("CHILD_ID", childId);
-                                    intent.putExtra("firstTime", true);
-                                    startActivity(intent);
+                                            .addOnSuccessListener(aVoid -> Log.d(TAG, "firstTime set to false"))
+                                            .addOnFailureListener(e -> Log.e(TAG, "Failed to update firstTime", e));
+
+                                    // Navigate to onboarding
+                                    Intent onboardingIntent = new Intent(ParentFamilyActivity.this, OnboardingActivity.class);
+                                    onboardingIntent.putExtra("PARENT_UID", parentUid);
+                                    onboardingIntent.putExtra("CHILD_ID", childId);
+                                    onboardingIntent.putExtra("firstTime", true);
+                                    startActivity(onboardingIntent);
                                     finish();
                                     return;
                                 }
                             }
-                            Intent intent = new Intent(ParentFamilyActivity.this, ChildHomeActivity.class);
-                            intent.putExtra("CHILD_ID", childId);
-                            intent.putExtra("CHILD_NAME", name);
-                            startActivity(intent);
-                        }
-                        else {
-                            Intent intent = new Intent(ParentFamilyActivity.this, ChildHomeActivity.class);
-                            intent.putExtra("CHILD_ID", childId);
-                            intent.putExtra("CHILD_NAME", name);
-                            startActivity(intent);
+                            // If no firstTime true, go to ChildHomeActivity
+                            Intent childIntent = new Intent(ParentFamilyActivity.this, ChildHomeActivity.class);
+                            childIntent.putExtra("CHILD_ID", childId);
+                            childIntent.putExtra("CHILD_NAME", name);
+                            startActivity(childIntent);
+                        } else {
+                            Log.e(TAG, "No matching child in childAccounts");
+                            // Fallback to ChildHomeActivity
+                            Intent childIntent = new Intent(ParentFamilyActivity.this, ChildHomeActivity.class);
+                            childIntent.putExtra("CHILD_ID", childId);
+                            childIntent.putExtra("CHILD_NAME", name);
+                            startActivity(childIntent);
                         }
                     })
                     .addOnFailureListener(e -> Toast.makeText(this, "Error checking child account.", Toast.LENGTH_SHORT).show());
         });
+    }
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return (int) (dp * density + 0.5f);
     }
 
     @Override

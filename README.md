@@ -267,8 +267,8 @@ Sorts display by decending timestamp.
 * Course: **CSCB07 – Software Design (Fall 2025)**
 * Members:
 
+- Zakariya Arale (Scrum Master)
 - Alireza Pourreza
 - Aydin Salar
-- Zakariya Arale
 - Ben Heerema
 - Rohat Dilberoglu

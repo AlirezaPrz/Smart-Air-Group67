@@ -39,7 +39,7 @@ public class ChildHomeActivity extends AbstractNavigation {
     private TextView controllerStreakText;
 
     private String parentUid;
-    private String childId;
+    private String childID;
 
     private static final long SIXTY_DAYS_MS = 60L * 24L * 60L * 60L * 1000L;
 
@@ -72,13 +72,13 @@ public class ChildHomeActivity extends AbstractNavigation {
 
         // Child id is always passed via intent
         if (intent != null) {
-            childId = intent.getStringExtra("CHILD_ID");
-            if (childId == null || childId.isEmpty()) {
-                childId = intent.getStringExtra("CHILD_DOC_ID"); // backward compatibility
+            childID = intent.getStringExtra("CHILD_ID");
+            if (childID == null || childID.isEmpty()) {
+                childID = intent.getStringExtra("CHILD_DOC_ID");
             }
         }
 
-        if (childId == null || childId.isEmpty()) {
+        if (childID == null || childID.isEmpty()) {
             Toast.makeText(this, "Child id is missing.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -88,7 +88,7 @@ public class ChildHomeActivity extends AbstractNavigation {
 
 
         childAccountsRef
-                .whereEqualTo("childDocId", childId)
+                .whereEqualTo("childDocId", childID)
                 .whereEqualTo("parentUid", parentUid)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
@@ -115,15 +115,12 @@ public class ChildHomeActivity extends AbstractNavigation {
                 .addOnFailureListener(e ->
                         Log.e("ChildHome", "Failed to query childAccounts", e));
 
-        // Continue normal initialization
         greetingText = findViewById(R.id.greetingText);
         techniqueStreakText = findViewById(R.id.techniqueStreakText);
         controllerStreakText = findViewById(R.id.controllerStreakText);
 
         loadChild();
         setButtons();
-
-
     }
 
 
@@ -136,17 +133,18 @@ public class ChildHomeActivity extends AbstractNavigation {
         db.collection("users")
                 .document(parentUid)
                 .collection("children")
-                .document(childId)
+                .document(childID)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String name = documentSnapshot.getString("name");
                         setGreeting(name);
 
-                        // After child is confirmed, load streaks
+                        //load streaks
                         loadControllerStreak();
                         loadTechniqueStreak();
-                    } else {
+                    }
+                    else {
                         Toast.makeText(this, "Child not found.", Toast.LENGTH_SHORT).show();
                         techniqueStreakText.setText("Your technique-completed streak is: 0");
                         controllerStreakText.setText("Your controller-day streak is: 0");
@@ -162,7 +160,7 @@ public class ChildHomeActivity extends AbstractNavigation {
     private void setButtons() {
         ImageButton buttonBadges = findViewById(R.id.buttonBadges);
         buttonBadges.setOnClickListener(v -> {
-            if (childId == null || childId.isEmpty()) {
+            if (childID == null || childID.isEmpty()) {
                 Toast.makeText(
                         ChildHomeActivity.this,
                         "Please add a child first.",
@@ -171,13 +169,13 @@ public class ChildHomeActivity extends AbstractNavigation {
                 return;
             }
             Intent newIntent = new Intent(ChildHomeActivity.this, ChildBadgesActivity.class);
-            newIntent.putExtra("CHILD_ID", childId);
+            newIntent.putExtra("CHILD_ID", childID);
             startActivity(newIntent);
         });
 
         ImageButton takeMedicationButton = findViewById(R.id.buttonTakeMedication);
         takeMedicationButton.setOnClickListener(v -> {
-            if (childId == null || childId.isEmpty()) {
+            if (childID == null || childID.isEmpty()) {
                 Toast.makeText(
                         ChildHomeActivity.this,
                         "Please add a child first.",
@@ -186,14 +184,14 @@ public class ChildHomeActivity extends AbstractNavigation {
                 return;
             }
             Intent newIntent = new Intent(ChildHomeActivity.this, PrePostCheckActivity.class);
-            newIntent.putExtra("CHILD_ID", childId);
+            newIntent.putExtra("CHILD_ID", childID);
             newIntent.putExtra("mode", "pre");
             startActivity(newIntent);
         });
 
         ImageButton checkZoneButton = findViewById(R.id.buttonCheckZone);
         checkZoneButton.setOnClickListener(v -> {
-            if (childId == null || childId.isEmpty() || parentUid == null || parentUid.isEmpty()) {
+            if (childID == null || childID.isEmpty() || parentUid == null || parentUid.isEmpty()) {
                 Toast.makeText(
                         ChildHomeActivity.this,
                         "Missing child or parent ID.",
@@ -202,14 +200,14 @@ public class ChildHomeActivity extends AbstractNavigation {
                 return;
             }
             Intent zoneIntent = new Intent(ChildHomeActivity.this, ZoneActivityChild.class);
-            zoneIntent.putExtra("CHILD_ID", childId);
+            zoneIntent.putExtra("CHILD_ID", childID);
             zoneIntent.putExtra("PARENT_UID", parentUid);
             startActivity(zoneIntent);
         });
 
         ImageButton buttonInhalerTechnique = findViewById(R.id.buttonInhalerTechnique);
         buttonInhalerTechnique.setOnClickListener(v -> {
-            if (childId == null || childId.isEmpty() || parentUid == null || parentUid.isEmpty()) {
+            if (childID == null || childID.isEmpty() || parentUid == null || parentUid.isEmpty()) {
                 Toast.makeText(
                         ChildHomeActivity.this,
                         "Missing child or parent ID.",
@@ -218,7 +216,7 @@ public class ChildHomeActivity extends AbstractNavigation {
                 return;
             }
             Intent zoneIntent = new Intent(ChildHomeActivity.this, TechniqueTraining.class);
-            zoneIntent.putExtra("CHILD_ID", childId);
+            zoneIntent.putExtra("CHILD_ID", childID);
             zoneIntent.putExtra("PARENT_UID", parentUid);
             startActivity(zoneIntent);
         });
@@ -226,7 +224,7 @@ public class ChildHomeActivity extends AbstractNavigation {
 
         ImageButton alertButton = findViewById(R.id.notificationButton);
         alertButton.setOnClickListener(v -> {
-            if (childId == null || childId.isEmpty()) {
+            if (childID == null || childID.isEmpty()) {
                 Toast.makeText(
                         ChildHomeActivity.this,
                         "Please add a child first.",
@@ -234,7 +232,7 @@ public class ChildHomeActivity extends AbstractNavigation {
                 ).show();
             }
             //a helper method that deals with sending alerts
-            AlertHelper.sendAlertToParent(parentUid, childId, "This is a test Alert!", this);
+            AlertHelper.sendAlertToParent(parentUid, childID, "This is a test Alert!", this);
         });
 
     }
@@ -252,35 +250,33 @@ public class ChildHomeActivity extends AbstractNavigation {
         long now = System.currentTimeMillis();
         long cutoff = now - SIXTY_DAYS_MS;
 
-        CollectionReference medLogsRef = db.collection("users")
+        CollectionReference medLogs = db.collection("users")
                 .document(parentUid)
                 .collection("children")
-                .document(childId)
+                .document(childID)
                 .collection("medLogs");
 
-        // Get all med logs, filter in Java
-        medLogsRef
-                .get()
+        medLogs.get()
                 .addOnSuccessListener(snapshot -> {
                     Map<String, Boolean> controllerDays = new HashMap<>();
 
                     for (QueryDocumentSnapshot doc : snapshot) {
                         Boolean isRescue = doc.getBoolean("isRescue");
                         if (isRescue == null || isRescue) {
-                            continue; // only controller meds
-                        }
-
-                        Long tsRaw = doc.getLong("timestamp");
-                        if (tsRaw == null) {
                             continue;
                         }
 
-                        long ts = normalizeTimestamp(tsRaw);
-                        if (ts < cutoff) {
+                        Long timestampBefore = doc.getLong("timestamp");
+                        if (timestampBefore == null) {
                             continue;
                         }
 
-                        Date date = new Date(ts);
+                        long timestamp = normalizeTimestamp(timestampBefore);
+                        if (timestamp < cutoff) {
+                            continue;
+                        }
+
+                        Date date = new Date(timestamp);
                         String dayKey = dayFormatter.format(date);
                         controllerDays.put(dayKey, Boolean.TRUE);
                     }
@@ -302,7 +298,7 @@ public class ChildHomeActivity extends AbstractNavigation {
         CollectionReference techniqueRef = db.collection("users")
                 .document(parentUid)
                 .collection("children")
-                .document(childId)
+                .document(childID)
                 .collection("techniqueLogs");
 
         techniqueRef
@@ -311,17 +307,17 @@ public class ChildHomeActivity extends AbstractNavigation {
                     Map<String, Boolean> techniqueDays = new HashMap<>();
 
                     for (QueryDocumentSnapshot doc : snapshot) {
-                        Long tsRaw = doc.getLong("timestamp");
-                        if (tsRaw == null) {
+                        Long timestampBefore = doc.getLong("timestamp");
+                        if (timestampBefore == null) {
                             continue;
                         }
 
-                        long ts = normalizeTimestamp(tsRaw);
-                        if (ts < cutoff) {
+                        long timestamp = normalizeTimestamp(timestampBefore);
+                        if (timestamp < cutoff) {
                             continue;
                         }
 
-                        Date date = new Date(ts);
+                        Date date = new Date(timestamp);
                         String dayKey = dayFormatter.format(date);
                         techniqueDays.put(dayKey, Boolean.TRUE);
                     }
@@ -336,11 +332,10 @@ public class ChildHomeActivity extends AbstractNavigation {
                 );
     }
 
-    // Convert seconds → ms if needed
+    // Convert seconds to miliseconds
     private long normalizeTimestamp(Long tsRaw) {
         long ts = tsRaw;
         if (ts < 10_000_000_000L) {
-            // looks like seconds since epoch
             ts = ts * 1000L;
         }
         return ts;
@@ -352,17 +347,15 @@ public class ChildHomeActivity extends AbstractNavigation {
         }
 
         Calendar cal = Calendar.getInstance();
+        int streak = 0;
 
-        // First check if today has an event
         String todayKey = dayFormatter.format(cal.getTime());
         Boolean todayEvent = daysWithEvents.get(todayKey);
 
-        // If there is NO event today, start counting from yesterday
         if (todayEvent == null || !todayEvent) {
             cal.add(Calendar.DAY_OF_YEAR, -1);
         }
 
-        int streak = 0;
         while (true) {
             String key = dayFormatter.format(cal.getTime());
             Boolean hasEvent = daysWithEvents.get(key);
@@ -385,8 +378,8 @@ public class ChildHomeActivity extends AbstractNavigation {
     @Override
     protected void onFamilyClicked() {
         Intent intent = new Intent(this, ChildFamilyActivity.class);
-        if (childId != null && !childId.isEmpty()) {
-            intent.putExtra("CHILD_ID", childId);
+        if (childID != null && !childID.isEmpty()) {
+            intent.putExtra("CHILD_ID", childID);
             intent.putExtra("PARENT_UID", parentUid);
         }
         startActivity(intent);
@@ -395,19 +388,19 @@ public class ChildHomeActivity extends AbstractNavigation {
     @Override
     protected void onEmergencyClicked() {
         Intent intent = new Intent(this, RedFlagsActivity_Child.class);
-        if (childId != null && !childId.isEmpty()) {
-            intent.putExtra("CHILD_ID", childId);
+        if (childID != null && !childID.isEmpty()) {
+            intent.putExtra("CHILD_ID", childID);
             intent.putExtra("PARENT_UID", parentUid);
         }
-        AlertHelper.sendAlertToParent(parentUid, childId, "TRIAGE_START", this);
+        AlertHelper.sendAlertToParent(parentUid, childID, "TRIAGE_START", this);
         startActivity(intent);
     }
 
     @Override
     protected void onSettingsClicked() {
         Intent intent = new Intent(ChildHomeActivity.this, ChildSettingsActivity.class);
-        if (childId != null && !childId.isEmpty()) {
-            intent.putExtra("CHILD_ID", childId);
+        if (childID != null && !childID.isEmpty()) {
+            intent.putExtra("CHILD_ID", childID);
             intent.putExtra("PARENT_UID", parentUid);
         }
         startActivity(intent);

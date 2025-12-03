@@ -35,18 +35,15 @@ public class ChildFamilyActivity extends AbstractNavigation {
 
         familyListContainer = findViewById(R.id.familyListContainer);
 
-        // 1) Try to get parentUid from FirebaseAuth (parent navigating into child view)
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             parentUid = currentUser.getUid();
         }
 
-        // 2) If not available, try from Intent (real child login flow)
         if (parentUid == null) {
             parentUid = getIntent().getStringExtra("PARENT_UID");
         }
 
-        // 3) Child id should always come from Intent
         childId = getIntent().getStringExtra("CHILD_ID");
 
         if (parentUid == null || childId == null || childId.isEmpty()) {
@@ -74,7 +71,6 @@ public class ChildFamilyActivity extends AbstractNavigation {
                         String thisChildId = doc.getId();
                         String name = doc.getString("name");
 
-                        // Mark the current child as "You", others as "Sibling"
                         String roleLabel;
                         if (thisChildId.equals(childId)) {
                             roleLabel = "You";
@@ -91,7 +87,6 @@ public class ChildFamilyActivity extends AbstractNavigation {
     }
 
     private void addFamilyRow(String name, String role) {
-        // Reuse the same row layout as parent
         android.view.View rowView = getLayoutInflater().inflate(
                 R.layout.item_family_member,
                 familyListContainer,

@@ -56,11 +56,7 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
         editLowRescueDays = findViewById(R.id.editLowRescueDays);
         buttonSaveBadgeSettings = findViewById(R.id.buttonSaveBadgeSettings);
 
-        backButton.setOnClickListener(view -> {
-            Intent intent = new Intent(ParentBadgeSettingsActivity.this, ParentHomeActivity.class);
-            startActivity(intent);
-            finish();
-        });
+        backButton.setOnClickListener(v -> finish());
 
         childrenAdapter = new ArrayAdapter<>(
                 this,
@@ -261,14 +257,14 @@ public class ParentBadgeSettingsActivity extends AppCompatActivity {
         badgesData.document("technique_sessions").set(techniqueData);
         badgesData.document("low_rescue_month").set(lowRescueData)
                 .addOnSuccessListener(unused -> Toast.makeText(
-                                ParentBadgeSettingsActivity.this,
-                                "Badge goals saved for this child.",
-                                Toast.LENGTH_SHORT).show()
+                        ParentBadgeSettingsActivity.this,
+                        "Badge goals saved for this child.",
+                        Toast.LENGTH_SHORT).show()
                 )
                 .addOnFailureListener(e -> Toast.makeText(
-                                ParentBadgeSettingsActivity.this,
-                                "Failed to save badge goals.",
-                                Toast.LENGTH_SHORT).show()
+                        ParentBadgeSettingsActivity.this,
+                        "Failed to save badge goals.",
+                        Toast.LENGTH_SHORT).show()
                 );
     }
 }

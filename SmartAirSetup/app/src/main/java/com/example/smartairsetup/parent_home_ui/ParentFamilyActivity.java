@@ -84,7 +84,6 @@ public class ParentFamilyActivity extends AbstractNavigation {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("ParentFamilyActivity", "Failed to load children", e);
                     Toast.makeText(this, "Failed to load children.", Toast.LENGTH_SHORT).show();
                 });
     }

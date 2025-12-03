@@ -29,6 +29,8 @@ public class LoginPresenter {
             return;
         }
 
+
+
         view.enableSignInButton(false);
 
         if (identifier.contains("@")) {
